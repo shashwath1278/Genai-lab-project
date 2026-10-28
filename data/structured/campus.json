@@ -1,0 +1,87 @@
+{
+  "otherFees": [
+    { "code": "ADMISSION", "name": "Admission & registration fee", "amount": 25000, "frequency": "one-time", "refundable": false },
+    { "code": "CAUTION", "name": "Caution deposit (refunded after course completion)", "amount": 10000, "frequency": "one-time", "refundable": true },
+    { "code": "ANNUAL", "name": "Exam, lab, library & student activity fees", "amount": 18000, "frequency": "annual", "refundable": false },
+    { "code": "HOSTEL_ADMISSION", "name": "Hostel admission fee", "amount": 5000, "frequency": "one-time", "refundable": false, "hostelOnly": true },
+    { "code": "HOSTEL_CAUTION", "name": "Hostel caution deposit (refundable)", "amount": 15000, "frequency": "one-time", "refundable": true, "hostelOnly": true }
+  ],
+  "hostelOptions": [
+    { "code": "TRIPLE", "name": "Triple sharing, non-AC", "sharing": 3, "ac": false, "feePerYear": 85000, "seats": 540 },
+    { "code": "DOUBLE", "name": "Double sharing, non-AC", "sharing": 2, "ac": false, "feePerYear": 105000, "seats": 360 },
+    { "code": "DOUBLE_AC", "name": "Double sharing, AC", "sharing": 2, "ac": true, "feePerYear": 140000, "seats": 160 },
+    { "code": "SINGLE_AC", "name": "Single room, AC (final-year priority)", "sharing": 1, "ac": true, "feePerYear": 175000, "seats": 40 }
+  ],
+  "messPlans": [
+    { "code": "VEG", "name": "Vegetarian mess plan", "feePerYear": 48000 },
+    { "code": "MIXED", "name": "Mixed plan (vegetarian + non-veg 3 days a week)", "feePerYear": 56000 }
+  ],
+  "transportZones": [
+    { "code": "A", "name": "Zone A (within 10 km of campus)", "feePerYear": 22000 },
+    { "code": "B", "name": "Zone B (10 to 20 km)", "feePerYear": 28000 },
+    { "code": "C", "name": "Zone C (beyond 20 km)", "feePerYear": 34000 }
+  ],
+  "scholarships": [
+    { "code": "MERIT50", "name": "Northgate Merit Award (50%)", "waiverPercent": 50, "rule": { "exam": "KCET", "maxRank": 2000 }, "criteria": "KCET rank 2,000 or better", "renewal": "CGPA of 8.0 or above with no backlogs each year" },
+    { "code": "MERIT25", "name": "Northgate Merit Award (25%)", "waiverPercent": 25, "rule": { "exam": "KCET", "maxRank": 5000 }, "criteria": "KCET rank between 2,001 and 5,000", "renewal": "CGPA of 7.5 or above with no backlogs each year" },
+    { "code": "JEE50", "name": "JEE Excellence Scholarship", "waiverPercent": 50, "rule": { "exam": "JEE Main", "minPercentile": 98 }, "criteria": "JEE Main percentile of 98 or above (management-quota admissions)", "renewal": "CGPA of 8.0 or above with no backlogs each year" },
+    { "code": "NEED40", "name": "Need-based Support Grant", "waiverPercent": 40, "rule": { "maxFamilyIncome": 250000 }, "criteria": "Annual family income below Rs 2.5 lakh (income certificate required)", "renewal": "CGPA of 7.0 or above and 85% attendance" },
+    { "code": "SPORTS25", "name": "Sports Achiever Scholarship", "waiverPercent": 25, "rule": { "sports": true }, "criteria": "Represented the state or country in a recognised sport in the last 3 years", "renewal": "Represent Northgate in inter-college events each year" },
+    { "code": "WICE15", "name": "Women in Core Engineering", "waiverPercent": 15, "rule": { "programs": ["ME", "CV"], "gender": "female" }, "criteria": "Women admitted to Mechanical or Civil Engineering", "renewal": "No backlogs" },
+    { "code": "SIBLING10", "name": "Sibling Concession", "waiverPercent": 10, "rule": { "sibling": true }, "criteria": "A sibling is currently studying at Northgate", "renewal": "While the sibling remains enrolled" }
+  ],
+  "scholarshipNotes": [
+    "All scholarship percentages apply to tuition fees only, not to hostel, mess, transport or other fees.",
+    "Only one scholarship can be held at a time; if a student qualifies for several, the highest one is applied.",
+    "New students apply within 30 days of admission through the Scholarship Cell; renewals are due by 30 November each year."
+  ],
+  "importantDates": [
+    { "title": "Odd semester classes", "category": "academics", "start": "2026-08-03", "end": "2026-11-27", "audience": "current" },
+    { "title": "Mid-semester tests (CIE 2)", "category": "exams", "start": "2026-10-26", "end": "2026-10-31", "audience": "current" },
+    { "title": "Last date to pay odd semester exam fee", "category": "exams", "start": "2026-11-06", "end": null, "audience": "current", "note": "Late fee of Rs 500 applies until 13 November; no registrations after that." },
+    { "title": "Zenith 2026 technical fest", "category": "events", "start": "2026-11-13", "end": "2026-11-15", "audience": "all" },
+    { "title": "Scholarship renewal deadline", "category": "scholarships", "start": "2026-11-30", "end": null, "audience": "current" },
+    { "title": "Semester end examinations (SEE)", "category": "exams", "start": "2026-12-07", "end": "2026-12-24", "audience": "current" },
+    { "title": "Winter break", "category": "academics", "start": "2026-12-26", "end": "2027-01-03", "audience": "current" },
+    { "title": "Even semester classes begin", "category": "academics", "start": "2027-01-04", "end": null, "audience": "current" },
+    { "title": "Management quota applications open (2027 intake)", "category": "admissions", "start": "2027-01-15", "end": null, "audience": "prospective" },
+    { "title": "Convocation 2027", "category": "events", "start": "2027-02-20", "end": null, "audience": "all" },
+    { "title": "Utsav 2027 cultural fest", "category": "events", "start": "2027-03-11", "end": "2027-03-13", "audience": "all" },
+    { "title": "Campus open day for applicants", "category": "admissions", "start": "2027-04-18", "end": null, "audience": "prospective" },
+    { "title": "Management quota applications close", "category": "admissions", "start": "2027-05-31", "end": null, "audience": "prospective" },
+    { "title": "Hostel applications for 2027-28 open", "category": "hostel", "start": "2027-05-15", "end": "2027-06-30", "audience": "prospective" },
+    { "title": "KCET / COMEDK counselling and seat reporting (indicative)", "category": "admissions", "start": "2027-07-05", "end": "2027-08-14", "audience": "prospective", "note": "Exact dates are announced by the counselling authorities; report to Northgate within the window on your allotment order." },
+    { "title": "Orientation week for the 2027 batch", "category": "admissions", "start": "2027-08-02", "end": "2027-08-06", "audience": "prospective" }
+  ],
+  "requiredDocuments": [
+    { "level": "ALL", "name": "10th (SSLC) marks card", "mandatory": true },
+    { "level": "ALL", "name": "12th (PUC) marks card", "mandatory": true },
+    { "level": "UG", "name": "Entrance exam scorecard and seat allotment order (KCET / COMEDK / JEE Main)", "mandatory": true, "note": "Not needed for management quota admissions without an entrance exam." },
+    { "level": "PG", "name": "Bachelor's degree marks cards (all semesters) and provisional degree certificate", "mandatory": true },
+    { "level": "PG", "name": "Entrance exam scorecard (PGCET / CAT / MAT / GATE)", "mandatory": true, "note": "Not needed for management quota admissions without an entrance exam." },
+    { "level": "ALL", "name": "Transfer certificate from the last institution", "mandatory": true },
+    { "level": "ALL", "name": "Migration certificate", "mandatory": false, "note": "Only for students from boards or universities outside Karnataka." },
+    { "level": "ALL", "name": "Conduct / character certificate", "mandatory": true },
+    { "level": "ALL", "name": "Aadhaar card copy", "mandatory": true },
+    { "level": "ALL", "name": "Six passport-size photographs", "mandatory": true },
+    { "level": "ALL", "name": "Caste / category certificate", "mandatory": false, "note": "Only if claiming OBC or SC/ST relaxation." },
+    { "level": "ALL", "name": "Income certificate", "mandatory": false, "note": "Only if applying for the Need-based Support Grant." },
+    { "level": "ALL", "name": "Gap certificate (affidavit)", "mandatory": false, "note": "Only if there is a gap of one year or more after the qualifying exam." },
+    { "level": "ALL", "name": "Medical fitness certificate", "mandatory": true },
+    { "level": "ALL", "name": "Anti-ragging undertaking signed by student and parent", "mandatory": true }
+  ],
+  "contacts": [
+    { "office": "Admissions Office", "person": "Ms. Kavya Rao", "role": "Admissions Manager", "email": "admissions@northgate.example.edu", "phone": "+91-80-5555-0110", "location": "Admin Block, Room A-102", "hours": "Mon-Sat, 9:00-17:00", "topics": "applications, eligibility, management quota, counselling reporting, campus visits" },
+    { "office": "Accounts Section", "person": "Mr. Suresh Menon", "role": "Accounts Officer", "email": "accounts@northgate.example.edu", "phone": "+91-80-5555-0120", "location": "Admin Block, Room A-110", "hours": "Mon-Fri, 9:30-16:30", "topics": "fee payment, receipts, instalments, refunds, education loan letters" },
+    { "office": "Scholarship Cell", "person": "Dr. Ananya Iyer", "role": "Scholarship Coordinator", "email": "scholarships@northgate.example.edu", "phone": "+91-80-5555-0125", "location": "Admin Block, Room A-115", "hours": "Mon-Fri, 10:00-16:00", "topics": "merit and need-based scholarships, renewals, government scholarship portals" },
+    { "office": "Hostel Office", "person": "Prof. Ramesh Kulkarni", "role": "Chief Warden", "email": "hostel@northgate.example.edu", "phone": "+91-80-5555-0130", "location": "Hostel Block H1, Ground Floor", "hours": "Daily, 8:00-20:00", "topics": "room allotment, hostel rules, mess, leave and visitors" },
+    { "office": "Examination Section", "person": "Dr. Meera Shetty", "role": "Controller of Examinations", "email": "coe@northgate.example.edu", "phone": "+91-80-5555-0140", "location": "Academic Block B, Room B-001", "hours": "Mon-Fri, 9:30-16:30", "topics": "exam registration, hall tickets, results, revaluation, transcripts" },
+    { "office": "Training & Placement Cell", "person": "Mr. Arjun Nair", "role": "Training & Placement Officer", "email": "placements@northgate.example.edu", "phone": "+91-80-5555-0150", "location": "Innovation Centre, 2nd Floor", "hours": "Mon-Fri, 9:30-17:30", "topics": "placements, internships, company visits, training programmes" },
+    { "office": "Transport Office", "person": "Mr. Prakash Gowda", "role": "Transport Manager", "email": "transport@northgate.example.edu", "phone": "+91-80-5555-0160", "location": "Main Gate Annexe", "hours": "Mon-Sat, 7:30-18:00", "topics": "bus routes, bus passes, route changes" },
+    { "office": "Dean of Student Welfare", "person": "Dr. Farah Khan", "role": "Dean, Student Welfare", "email": "dsw@northgate.example.edu", "phone": "+91-80-5555-0170", "location": "Student Centre, 1st Floor", "hours": "Mon-Fri, 10:00-17:00", "topics": "clubs, events, grievances, counselling referrals, student welfare" },
+    { "office": "Anti-Ragging Helpline", "person": "Anti-Ragging Squad", "role": "24x7 helpline", "email": "antiragging@northgate.example.edu", "phone": "+91-80-5555-0199", "location": "Security Office, Main Gate", "hours": "24x7", "topics": "ragging complaints, harassment, campus safety" },
+    { "office": "Library", "person": "Dr. Vivek Joshi", "role": "Chief Librarian", "email": "library@northgate.example.edu", "phone": "+91-80-5555-0180", "location": "Central Library, Ground Floor", "hours": "Mon-Sat, 8:00-22:00", "topics": "borrowing, digital resources, fines, reading room" },
+    { "office": "IT Helpdesk", "person": "IT Services Team", "role": "Helpdesk", "email": "it-help@northgate.example.edu", "phone": "+91-80-5555-0190", "location": "Academic Block A, Room A-010", "hours": "Mon-Sat, 8:30-19:00", "topics": "student portal, email accounts, Wi-Fi, LMS access" },
+    { "office": "Health Centre", "person": "Dr. Lakshmi Prasad", "role": "Medical Officer", "email": "health@northgate.example.edu", "phone": "+91-80-5555-0108", "location": "Health Centre, near Hostel Block H2", "hours": "24x7 (doctor on campus 8:00-20:00)", "topics": "medical care, first aid, ambulance, health insurance" }
+  ]
+}
