@@ -1,3 +1,4 @@
+import { type Building, getBuilding, PLACES, planCampusRoute } from "./campus-map";
 import type { CollegeData, Route } from "./college-data";
 import { COLLEGE } from "./college";
 import { formatDateRange, formatINR, formatNumber } from "./format";
@@ -217,6 +218,46 @@ function documentsDoc(d: CollegeData): GeneratedDoc {
   };
 }
 
+/** Rough position from the map grid: which roads a building sits between. */
+function whereOnCampus(b: Building): string {
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h / 2;
+  if (b.kind === "gate") return "on the north wall, at the top of Gate Avenue";
+  const row = cy < 120 ? "just inside the north wall, off North Road" : cy < 300 ? "between North Road and Central Walk" : cy < 470 ? "between Central Walk and South Walk" : "south of South Walk";
+  const side = cx > 900 ? "east of East Lane" : cx < 470 ? "west of Gate Avenue" : cx > 490 ? "east of Gate Avenue" : "at the foot of Gate Avenue";
+  return `${row}, ${side}`;
+}
+
+function campusMapDoc(): GeneratedDoc {
+  const lines = [
+    "# Campus Map and Directions",
+    "",
+    "## Layout",
+    "",
+    "The 42-acre campus is entered through the Main Gate on the north wall. Gate Avenue runs south from the gate, past the Admin Block and the Auditorium, to Jacaranda Circle at the centre of campus, and on to South Walk. North Road runs east-west just inside the wall; Central Walk crosses the campus east-west through Jacaranda Circle; South Walk runs past the Food Court and the hostels. West Lane and East Lane join the three roads at each side, and the sports grounds lie east of East Lane. The men's hostels (H1, H2) are at the south-west and the women's hostels (H3, H4) at the south-east.",
+    "",
+    "## Where things are",
+    "",
+    "| Place | Where | What's there | Walk from the Main Gate |",
+    "|---|---|---|---|",
+  ];
+  for (const p of PLACES.filter((p) => p.id !== "main-gate")) {
+    const b = getBuilding(p.buildings[0])!;
+    const r = planCampusRoute({ to: p.name }).route;
+    const walk = r ? `about ${r.distanceM} m, ${r.minutes} min` : "";
+    const where = p.buildings.length > 1 ? "in each hostel block" : whereOnCampus(b);
+    lines.push(`| ${p.name} | ${where} | ${p.detail} | ${walk} |`);
+  }
+  lines.push("", "Ask the assistant for walking directions between any two places; it draws the route on the campus map.", "");
+  return {
+    slug: "campus-map",
+    title: "Campus Map and Directions",
+    category: "facilities",
+    audience: ["prospective", "parent", "current"],
+    content: lines.join("\n"),
+  };
+}
+
 export function renderGeneratedDocs(d: CollegeData): GeneratedDoc[] {
-  return [programsDoc(d), hostelTransportDoc(d), scholarshipsDoc(d), calendarDoc(d), contactsDoc(d), documentsDoc(d)];
+  return [programsDoc(d), hostelTransportDoc(d), scholarshipsDoc(d), calendarDoc(d), contactsDoc(d), documentsDoc(d), campusMapDoc()];
 }

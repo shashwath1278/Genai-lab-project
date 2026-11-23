@@ -4,9 +4,12 @@ import { ArrowBendDownRight, Check, Copy, PushPin, SpeakerHigh, SpeakerSlash, Th
 import { motion } from "motion/react";
 import { useState } from "react";
 import type { CopilotMessage, EvidenceData } from "@/lib/chat-types";
+import type { WebResult } from "@/lib/websearch";
 import { BrandMark } from "../art/Brand";
+import { ReadingCards } from "../cards/ReadingCard";
 import { isToolPart, ToolPartView } from "../cards/ToolPartView";
 import { usePlan } from "../plan/PlanContext";
+import { SiteStack } from "../SiteLogo";
 import { CONFIDENCE, cx, IconButton } from "../ui";
 import { AnswerMarkdown } from "./AnswerMarkdown";
 import { speakableText } from "./speech";
@@ -14,6 +17,13 @@ import { speakableText } from "./speech";
 export function getEvidence(message: CopilotMessage): EvidenceData | undefined {
   const part = message.parts.find((p) => p.type === "data-evidence");
   return part && "data" in part ? (part.data as EvidenceData) : undefined;
+}
+
+/** Official-site results the answer may cite as [W1]. */
+export function getWebResults(message: CopilotMessage): WebResult[] {
+  return message.parts.flatMap((p) =>
+    p.type === "tool-searchOfficialWeb" && p.state === "output-available" && p.output && "results" in p.output ? p.output.results : [],
+  );
 }
 
 export const messageText = (m: CopilotMessage) =>
@@ -65,8 +75,9 @@ export function AssistantMessage({
   const [copied, setCopied] = useState(false);
   const evidence = getEvidence(message);
   const passages = evidence?.passages ?? [];
+  const web = getWebResults(message);
   const text = messageText(message);
-  const hasContent = message.parts.some((p) => (p.type === "text" && (p as { text: string }).text.trim()) || isToolPart(p));
+  const hasContent = message.parts.some((p) => (p.type === "text" && (p as { text: string }).text.trim()) || isToolPart(p) || p.type === "data-reading");
   const working = streaming && isLast;
   const conf = evidence ? CONFIDENCE[evidence.confidence] : null;
 
@@ -95,10 +106,11 @@ export function AssistantMessage({
         {message.parts.map((part, i) => {
           if (part.type === "text") {
             return (part as { text: string }).text.trim() ? (
-              <AnswerMarkdown key={i} text={(part as { text: string }).text} passages={passages} onCite={onCite} />
+              <AnswerMarkdown key={i} text={(part as { text: string }).text} passages={passages} web={web} onCite={onCite} />
             ) : null;
           }
           if (isToolPart(part)) return <ToolPartView key={i} part={part} />;
+          if (part.type === "data-reading") return <ReadingCards key={i} data={part.data} onAsk={onFollowUp} />;
           return null;
         })}
 
@@ -120,6 +132,17 @@ export function AssistantMessage({
               >
                 <conf.icon size={13} className={conf.text} aria-hidden />
                 {passages.length} sources
+              </button>
+            )}
+            {web.length > 0 && (
+              <button
+                type="button"
+                onClick={onShowEvidence}
+                aria-label={`${web.length} web sources: ${[...new Set(web.map((w) => w.site))].join(", ")}`}
+                className="mr-1 inline-flex h-7 items-center gap-1.5 rounded-full border border-line py-0 pl-1 pr-2.5 text-[12px] font-medium text-ink-2 transition-colors hover:bg-surface-2"
+              >
+                <SiteStack sources={web} size={18} />
+                {web.length} web {web.length === 1 ? "source" : "sources"}
               </button>
             )}
             <span className="flex items-center opacity-100 transition-opacity md:opacity-0 md:group-hover/msg:opacity-100 md:focus-within:opacity-100">

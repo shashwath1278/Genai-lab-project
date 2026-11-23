@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CalendarBlank, Columns, GraduationCap, Wallet, type Icon } from "@phosphor-icons/react";
+import { ArrowUpRight, CalendarBlank, Columns, GraduationCap, Paperclip, Wallet, type Icon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { getPersona, type PersonaId } from "@/lib/college";
 import { SprigSpot } from "../art/spots";
@@ -24,7 +24,17 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
-export function EmptyState({ persona, onAsk, onTemplate }: { persona: PersonaId; onAsk: (q: string) => void; onTemplate: (t: string) => void }) {
+export function EmptyState({
+  persona,
+  onAsk,
+  onTemplate,
+  webSearch = false,
+}: {
+  persona: PersonaId;
+  onAsk: (q: string) => void;
+  onTemplate: (t: string) => void;
+  webSearch?: boolean;
+}) {
   const p = getPersona(persona);
   const [plain, accent] = TITLE[persona];
   return (
@@ -75,6 +85,14 @@ export function EmptyState({ persona, onAsk, onTemplate }: { persona: PersonaId;
           </li>
         ))}
       </motion.ul>
+
+      <motion.p variants={item} className="mt-6 flex items-start gap-2 text-[13px] leading-snug text-muted">
+        <Paperclip size={15} className="mt-px shrink-0 text-accent-text" aria-hidden />
+        <span>
+          Attach a photo of a marks card, rank card, fee receipt or notice and I&apos;ll read it for you.
+          {webSearch && " For entrance exams and government schemes, I can also check the official sites."}
+        </span>
+      </motion.p>
     </motion.div>
   );
 }

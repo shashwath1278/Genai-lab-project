@@ -27,6 +27,7 @@ const text = (s: string): Chunk[] => [
 const script: Chunk[][] = [];
 const rewrites: string[] = [];
 const prompts: string[] = [];
+const visionReplies: string[] = [];
 
 vi.mock("../src/lib/session", () => ({ getSessionId: async () => "test-session" }));
 vi.mock("../src/lib/llm", () => ({
@@ -48,18 +49,35 @@ vi.mock("../src/lib/llm", () => ({
       },
     }),
   }),
+  getVisionModel: () => ({
+    label: "mock-vision",
+    pdf: null,
+    model: new MockLanguageModelV4({
+      doGenerate: async () => ({
+        content: [{ type: "text", text: visionReplies.shift() ?? "{}" }],
+        finishReason: { unified: "stop", raw: undefined },
+        usage,
+        warnings: [],
+      }),
+    }),
+  }),
 }));
 
 const dbFile = path.join(os.tmpdir(), `northgate-test-${process.pid}.db`);
 let POST: (req: Request) => Promise<Response>;
 let db: import("better-sqlite3").Database;
 
-async function chat(messages: { role: "user" | "assistant"; text: string }[], body: object = {}) {
+type Msg = { role: "user" | "assistant"; text: string; files?: { mediaType: string; url: string; filename: string }[] };
+async function chat(messages: Msg[], body: object = {}) {
   const res = await POST(
     new Request("http://test/api/chat", {
       method: "POST",
       body: JSON.stringify({
-        messages: messages.map((m, i) => ({ id: String(i), role: m.role, parts: [{ type: "text", text: m.text }] })),
+        messages: messages.map((m, i) => ({
+          id: String(i),
+          role: m.role,
+          parts: [...(m.files ?? []).map((f) => ({ type: "file", ...f })), { type: "text", text: m.text }],
+        })),
         ...body,
       }),
     }),
@@ -132,6 +150,81 @@ describe("POST /api/chat", () => {
     const clusters = db.prepare("SELECT label, count, status FROM gap_clusters").all() as { count: number; status: string }[];
     expect(clusters).toHaveLength(1);
     expect(clusters[0]).toMatchObject({ count: 2, status: "open" });
+  });
+
+  it("shows the campus map and hands the model the directions, not the geometry", async () => {
+    script.push(toolCall("showCampusMap", { to: "examination section" }), text("It's in Block B, about 4 minutes from the gate."));
+    const chunks = await chat([{ role: "user", text: "Where is the Examination Section?" }]);
+    const map = chunks.find((c) => c.type === "tool-output-available")?.output as { to: { id: string }; route: { points: unknown[]; steps: string[] } };
+    expect(map.to.id).toBe("block-b");
+    expect(map.route.points.length).toBeGreaterThan(3);
+    expect(map.route.steps.at(-1)).toBe("Block B is on your left.");
+    const toModel = prompts.at(-1)!;
+    expect(toModel).toContain("Block B is on your left.");
+    expect(toModel).not.toContain("points");
+  });
+
+  it("reads an attached receipt, audits it in code, and keeps the image away from the answering model", async () => {
+    visionReplies.push(JSON.stringify({
+      kind: "fee_receipt", title: "Fee receipt 2026-27", summary: "AIML fees under KCET.",
+      fees: { lines: [{ label: "Tuition fee", amount: 110000 }, { label: "Exam, lab, library & activity fees", amount: 25000 }], total: 140000, program: "AIML", quota: "KCET" },
+      dates: [], marks: null, exam: null, unclear: null,
+    }));
+    script.push(text("Two things don't match the official fees."));
+    const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    const before = (db.prepare("SELECT COUNT(*) AS n FROM gap_clusters").get() as { n: number }).n;
+    const chunks = await chat([{ role: "user", text: "Is this receipt right?", files: [{ mediaType: "image/png", url: png, filename: "receipt.png" }] }]);
+
+    const reading = chunks.find((c) => c.type === "data-reading")?.data as { files: { audit: { verdict: string; totalMatches: boolean; lines: { status: string }[] } }[] };
+    expect(reading.files[0].audit).toMatchObject({ verdict: "mismatch", totalMatches: false });
+    expect(reading.files[0].audit.lines.map((l) => l.status)).toEqual(["ok", "higher"]);
+    expect(chunks.map((c) => c.type).indexOf("data-reading")).toBeLessThan(chunks.map((c) => c.type).indexOf("text-delta"));
+
+    const toModel = prompts.at(-1)!;
+    expect(toModel).toContain("ATTACHMENTS");
+    expect(toModel).toContain("Rs 7,000 more");
+    expect(toModel).toContain("[Attached: receipt.png]");
+    expect(toModel).not.toContain("base64");
+    expect((db.prepare("SELECT COUNT(*) AS n FROM gap_clusters").get() as { n: number }).n).toBe(before);
+  });
+
+  it("refuses attachments that aren't photos or PDFs", async () => {
+    const res = await POST(
+      new Request("http://test/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ messages: [{ id: "1", role: "user", parts: [{ type: "file", mediaType: "text/html", filename: "x.html", url: "data:text/html;base64,PGI+aGk8L2I+" }, { type: "text", text: "read" }] }] }),
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/isn't a photo/);
+  });
+
+  it("searches official sites only when a key is set, and doesn't file web-answered questions as gaps", async () => {
+    process.env.TAVILY_API_KEY = "test-key";
+    const realFetch = globalThis.fetch;
+    vi.stubGlobal("fetch", async (url: string | URL | Request, init?: RequestInit) =>
+      String(url).includes("api.tavily.com")
+        ? new Response(JSON.stringify({ results: [
+            { title: "KCET 2027 brochure", url: "https://cetonline.karnataka.gov.in/kea/kcet2027", content: "The exam is on 18 and 19 April 2027.", published_date: "2026-11-01" },
+            { title: "KCET tips", url: "https://blog.example.com/kcet", content: "unofficial" },
+          ] }))
+        : realFetch(url, init),
+    );
+    try {
+      script.push(toolCall("searchOfficialWeb", { query: "KCET 2027 exam date" }), text("KCET 2027 is on 18-19 April [W1]."));
+      const chunks = await chat([{ role: "user", text: "When is the KCET 2027 exam?" }]);
+      const out = chunks.find((c) => c.type === "tool-output-available")?.output as { results: { id: string; domain: string }[] };
+      expect(out.results).toEqual([expect.objectContaining({ id: "W1", domain: "cetonline.karnataka.gov.in" })]);
+      const toModel = prompts.at(-1)!;
+      expect(toModel).toContain("searchOfficialWeb looks things up on official government");
+      expect(toModel).toContain("not Northgate's handbook");
+      const evidence = chunks.find((c) => c.type === "data-evidence")!.data as { queryId: number };
+      const q = db.prepare("SELECT gap_cluster_id FROM queries WHERE id = ?").get(evidence.queryId) as { gap_cluster_id: number | null };
+      expect(q.gap_cluster_id).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+      delete process.env.TAVILY_API_KEY;
+    }
   });
 
   it("rejects requests without a user message", async () => {

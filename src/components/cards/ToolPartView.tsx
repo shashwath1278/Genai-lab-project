@@ -3,12 +3,16 @@
 import { CircleNotch, Warning } from "@phosphor-icons/react";
 import type { ChecklistResult, CompareResult, CostEstimate, DatesResult, EligibilityResult } from "@/lib/calculators";
 import type { CopilotMessage } from "@/lib/chat-types";
+import type { MapResult } from "@/lib/campus-map";
+import { CampusMapCard } from "./CampusMapCard";
 import { ChecklistCard } from "./ChecklistCard";
 import { CompareCard } from "./CompareCard";
 import { CostCard } from "./CostCard";
 import { EligibilityCard } from "./EligibilityCard";
 import { GapCard } from "./GapCard";
 import { TimelineCard } from "./TimelineCard";
+import { WebResultsCard } from "./WebResultsCard";
+import type { WebSearchOutput } from "@/lib/websearch";
 
 type Part = CopilotMessage["parts"][number];
 
@@ -19,6 +23,8 @@ const WORKING: Record<string, string> = {
   "tool-getImportantDates": "Checking dates",
   "tool-buildAdmissionChecklist": "Building checklist",
   "tool-flagKnowledgeGap": "Noting the gap",
+  "tool-showCampusMap": "Finding it on the map",
+  "tool-searchOfficialWeb": "Checking official sites",
 };
 
 export const isToolPart = (part: Part) => part.type.startsWith("tool-");
@@ -55,6 +61,10 @@ export function ToolPartView({ part }: { part: Part }) {
       return <TimelineCard result={output as DatesResult} />;
     case "tool-buildAdmissionChecklist":
       return <ChecklistCard result={output as ChecklistResult} />;
+    case "tool-showCampusMap":
+      return <CampusMapCard result={output as MapResult} />;
+    case "tool-searchOfficialWeb":
+      return <WebResultsCard output={output as WebSearchOutput} />;
     case "tool-flagKnowledgeGap":
       return <GapCard output={output as Parameters<typeof GapCard>[0]["output"]} />;
     default:

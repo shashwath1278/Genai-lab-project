@@ -1,8 +1,8 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { ArrowCounterClockwise, BookOpen, ClipboardText, NotePencil, Warning, X } from "@phosphor-icons/react";
+import { DefaultChatTransport, type FileUIPart } from "ai";
+import { ArrowCounterClockwise, BookOpen, ClipboardText, FilePdf, NotePencil, Warning, X } from "@phosphor-icons/react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -12,13 +12,20 @@ import { EvidencePanel } from "../evidence/EvidencePanel";
 import { PlanBoard } from "../plan/PlanBoard";
 import { PlanProvider, usePlan } from "../plan/PlanContext";
 import { Button, cx } from "../ui";
-import { AssistantMessage, getEvidence, messageText, TypingDots } from "./AssistantMessage";
+import { AssistantMessage, getEvidence, getWebResults, messageText, TypingDots } from "./AssistantMessage";
+import { withoutOldAttachments } from "./attachments";
 import { Composer } from "./Composer";
 import { EmptyState } from "./EmptyState";
 import { Header, type Status } from "./Header";
 import { speak, stopSpeaking } from "./speech";
 
-const transport = new DefaultChatTransport<CopilotMessage>({ api: "/api/chat" });
+// Earlier attachments were read already: only the newest message carries files.
+const transport = new DefaultChatTransport<CopilotMessage>({
+  api: "/api/chat",
+  prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
+    body: { ...body, id, trigger, messageId, messages: withoutOldAttachments(messages) },
+  }),
+});
 
 // Persona and language are per-browser conveniences: localStorage, with an
 // in-memory fallback when storage is unavailable.
@@ -137,17 +144,18 @@ function WorkspaceInner() {
     if (p || q) router.replace("/chat", { scroll: false });
   }, [params, router, setPersona, sendMessage, persona, language]);
 
-  const withEvidence = messages.filter((m) => m.role === "assistant" && getEvidence(m));
-  const selected = messages.find((m) => m.id === selectedId && getEvidence(m)) ?? withEvidence.at(-1);
+  const hasSources = (m: CopilotMessage) => m.role === "assistant" && (!!getEvidence(m) || getWebResults(m).length > 0);
+  const withEvidence = messages.filter(hasSources);
+  const selected = messages.find((m) => m.id === selectedId && hasSources(m)) ?? withEvidence.at(-1);
   const evidence = selected ? (getEvidence(selected) ?? null) : null;
 
-  const ask = (text: string) => {
-    if (!text.trim() || busy) return;
+  const ask = (text: string, files: FileUIPart[] = []) => {
+    if ((!text.trim() && !files.length) || busy) return;
     clearError();
     setSelectedId(null);
     setFocus(null);
     setInput("");
-    sendMessage({ text }, { body: { persona, language } });
+    sendMessage(files.length ? { text, files } : { text }, { body: { persona, language } });
   };
 
   const applyTemplate = (template: string) => {
@@ -196,7 +204,7 @@ function WorkspaceInner() {
   const errorText = readError(error);
   const panel = (id: string) => (
     <SidePanel id={id} tab={tab} onTab={setTab} planCount={plan.items.filter((i) => !i.done).length}>
-      {tab === "evidence" ? <EvidencePanel evidence={evidence} focusN={focus?.n ?? null} focusTick={focus?.tick ?? 0} /> : <PlanBoard />}
+      {tab === "evidence" ? <EvidencePanel evidence={evidence} web={selected ? getWebResults(selected) : []} focusN={focus?.n ?? null} focusTick={focus?.tick ?? 0} /> : <PlanBoard />}
     </SidePanel>
   );
 
@@ -226,7 +234,7 @@ function WorkspaceInner() {
           <div ref={scroller} className="scrollbar-thin flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl px-4 pb-6 pt-4 sm:px-6">
               {messages.length === 0 ? (
-                <EmptyState persona={persona} onAsk={ask} onTemplate={applyTemplate} />
+                <EmptyState persona={persona} onAsk={(q) => ask(q)} onTemplate={applyTemplate} webSearch={!!info?.webSearch} />
               ) : (
                 <div className="space-y-6 pt-2">
                   {messages.map((m, i) =>
@@ -239,9 +247,10 @@ function WorkspaceInner() {
                         transition={{ type: "spring", bounce: 0.25, duration: 0.45 }}
                         style={{ transformOrigin: "100% 100%" }}
                       >
-                        <p className="max-w-[85%] whitespace-pre-wrap rounded-3xl rounded-br-md bg-accent px-4 py-2.5 text-[15px] text-accent-ink shadow-card">
-                          {messageText(m)}
-                        </p>
+                        <div className="flex max-w-[85%] flex-col items-end gap-1.5">
+                          <UserAttachments message={m} />
+                          <p className="whitespace-pre-wrap rounded-3xl rounded-br-md bg-accent px-4 py-2.5 text-[15px] text-accent-ink shadow-card">{messageText(m)}</p>
+                        </div>
                       </motion.div>
                     ) : (
                       <AssistantMessage
@@ -297,7 +306,7 @@ function WorkspaceInner() {
                   </Button>
                 </div>
               )}
-              <Composer value={input} onChange={setInput} onSubmit={ask} onStop={stop} busy={busy} language={language} inputRef={inputRef} />
+              <Composer value={input} onChange={setInput} onSubmit={(t, f) => ask(t, f)} onStop={stop} busy={busy} language={language} inputRef={inputRef} />
             </div>
           </div>
         </main>
@@ -351,6 +360,27 @@ function WorkspaceInner() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** Photos and PDFs the user sent, above their message. */
+function UserAttachments({ message }: { message: CopilotMessage }) {
+  const files = message.parts.filter((p): p is FileUIPart => p.type === "file");
+  if (!files.length) return null;
+  return (
+    <div className="flex flex-wrap justify-end gap-1.5">
+      {files.map((f, i) =>
+        f.mediaType.startsWith("image/") ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a local data URL the user just attached
+          <img key={i} src={f.url} alt={f.filename ?? "Attached photo"} className="max-h-44 max-w-56 rounded-2xl border border-line object-cover shadow-card" />
+        ) : (
+          <span key={i} className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-[13px] text-ink-2 shadow-card">
+            <FilePdf size={16} weight="duotone" className="text-laterite" aria-hidden />
+            {f.filename ?? "Document.pdf"}
+          </span>
+        ),
+      )}
     </div>
   );
 }

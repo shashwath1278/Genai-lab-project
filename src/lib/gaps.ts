@@ -158,3 +158,22 @@ export function listGaps(db: DB = getDb()): GapSummary[] {
 export function setGapStatus(clusterId: number, status: "resolved" | "dismissed" | "open", documentId: number | null = null, db: DB = getDb()) {
   db.prepare("UPDATE gap_clusters SET status = ?, resolved_document_id = ? WHERE id = ?").run(status, documentId, clusterId);
 }
+
+/**
+ * Undo the automatic low-confidence gap for a question that was about the
+ * world outside Northgate and was answered from official sites (KCET dates,
+ * a government scholarship). The handbook isn't meant to cover those, so they
+ * shouldn't sit on the staff gap list. Gaps the model flagged stay.
+ */
+export function retractGap(queryId: number, db: DB = getDb()): boolean {
+  return db.transaction(() => {
+    const q = db.prepare("SELECT gap_cluster_id, gap_reason FROM queries WHERE id = ?").get(queryId) as
+      | { gap_cluster_id: number | null; gap_reason: GapReason | null }
+      | undefined;
+    if (!q?.gap_cluster_id || q.gap_reason !== "low-confidence") return false;
+    db.prepare("UPDATE queries SET gap_cluster_id = NULL, gap_reason = NULL WHERE id = ?").run(queryId);
+    db.prepare("UPDATE gap_clusters SET count = count - 1 WHERE id = ?").run(q.gap_cluster_id);
+    db.prepare("DELETE FROM gap_clusters WHERE id = ? AND count <= 0 AND status = 'open'").run(q.gap_cluster_id);
+    return true;
+  })();
+}

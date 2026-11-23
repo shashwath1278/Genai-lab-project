@@ -31,7 +31,7 @@ for (const scheme of ["light", "dark"] as const) {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Ask the college.");
     await expect(page.getByRole("img", { name: /Northgate campus gate/ })).toBeVisible();
     await settle(page);
-    await expect(page.getByText("134", { exact: true })).toBeVisible();
+    await expect(page.getByText("137", { exact: true })).toBeVisible();
     await page.screenshot({ path: `${SHOTS}/landing-${scheme}.png`, fullPage: true });
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

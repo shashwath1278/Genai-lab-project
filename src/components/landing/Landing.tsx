@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { BrandMark, Wordmark } from "../art/Brand";
 import { GateScene } from "../art/GateScene";
-import { GapSpot, LedgerSpot, SourcesSpot, SprigSpot, TonguesSpot } from "../art/spots";
+import { GapSpot, LedgerSpot, MapSpot, ScanSpot, SourcesSpot, SprigSpot, TonguesSpot } from "../art/spots";
 import CountUp from "../reactbits/CountUp";
 import SplitText from "../reactbits/SplitText";
 import { cx } from "../ui";
@@ -27,6 +27,8 @@ const FEATURES = [
   { art: LedgerSpot, title: "Numbers are calculated", text: "Fees, cutoffs and totals come from the college's own tables." },
   { art: TonguesSpot, title: "Ask in your language", text: "English, हिन्दी, ಕನ್ನಡ, தமிழ், తెలుగు. Type it or say it." },
   { art: GapSpot, title: "Honest when it doesn't know", text: "Unanswered questions go to staff, who fill the gap." },
+  { art: ScanSpot, title: "Snap it, check it", text: "Photograph a fee receipt and every line is checked against the official fees." },
+  { art: MapSpot, title: "Find your way", text: "Ask where any office is and get a map with the walking route." },
 ];
 
 const PEOPLE: { icon: Icon; who: string; persona: string; q: string; tint: string }[] = [
@@ -36,10 +38,10 @@ const PEOPLE: { icon: Icon; who: string; persona: string; q: string; tint: strin
 ];
 
 const STATS = [
-  { to: 21, suffix: "", label: "handbook documents" },
-  { to: 134, suffix: "", label: "passages indexed" },
+  { to: 22, suffix: "", label: "handbook documents" },
+  { to: 137, suffix: "", label: "passages indexed" },
   { to: 5, suffix: "", label: "languages" },
-  { to: 100, suffix: "%", label: "top-5 retrieval on 39 test questions" },
+  { to: 100, suffix: "%", label: "top-5 retrieval on 42 test questions" },
 ];
 
 const reveal = {

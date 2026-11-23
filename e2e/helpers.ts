@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
-export const composer = (page: Page) => page.getByPlaceholder("Ask anything about Northgate");
+// By its label, not its placeholder: the placeholder changes once a file is attached.
+export const composer = (page: Page) => page.getByRole("textbox", { name: "Ask about Northgate" });
 
 /** Type a question, send it and wait until the answer has finished streaming. */
 export async function ask(page: Page, text: string) {

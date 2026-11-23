@@ -72,7 +72,7 @@ export function useSpeechInput(lang: string, onText: (text: string, final: boole
 /** Markdown and citation markers removed, so the voice reads clean sentences. */
 export function speakableText(markdown: string): string {
   return normalizeCitations(markdown)
-    .replace(/\[(\d{1,2})\]/g, "")
+    .replace(/\[(W?\d{1,2})\]/g, "")
     .replace(/[*_`#>|]/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/\s+/g, " ")

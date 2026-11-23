@@ -22,7 +22,7 @@ export const PERSONAS = [
     short: "Student",
     blurb: "Exams, attendance, hostel, library, clubs",
     tone: "a student already enrolled. Be brief and direct, like a helpful senior. Lead with the rule or the date, then the detail.",
-    starters: ["Last date to pay the exam fee?", "Attendance needed to write exams?", "How do I apply for revaluation?"],
+    starters: ["Last date to pay the exam fee?", "Where is the Examination Section?", "How do I apply for revaluation?"],
   },
   {
     id: "parent",

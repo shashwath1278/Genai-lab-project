@@ -6,8 +6,8 @@ test("status reports the knowledge base and the configured model", async ({ requ
   const res = await request.get("/api/status");
   expect(res.ok()).toBe(true);
   const body = await res.json();
-  expect(body.documents).toBe(21);
-  expect(body.chunks).toBe(134);
+  expect(body.documents).toBe(22);
+  expect(body.chunks).toBe(137);
   expect(body.llm?.provider).toMatch(/gemini|groq/);
 });
 

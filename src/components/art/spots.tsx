@@ -205,3 +205,62 @@ export function PlanSpot({ className }: Props) {
     </svg>
   );
 }
+
+/** A photographed receipt in a viewfinder, one line flagged, one ticked. */
+export function ScanSpot({ className }: Props) {
+  const paper = "M46 16 H112 V98 L106 104 L100 98 L94 104 L88 98 L82 104 L76 98 L70 104 L64 98 L58 104 L52 98 L46 104 Z";
+  return (
+    <svg viewBox="0 0 160 120" className={className} aria-hidden>
+      <path d={paper} fill="var(--laterite-soft)" transform="translate(4 4)" />
+      <path d={paper} fill="var(--surface)" />
+      <g {...line} strokeOpacity={0.45}>
+        {[34, 48, 62].map((y) => (
+          <g key={y}>
+            <path d={`M54 ${y} H78`} />
+            <path d={`M88 ${y} H104`} />
+          </g>
+        ))}
+      </g>
+      <rect x={51} y={43} width={57} height={10} rx={3} fill="var(--laterite)" opacity={0.25} />
+      <path d="M54 80 H104" {...line} />
+      <path d="M54 84 H104" {...line} strokeOpacity={0.5} />
+      <path d={paper} {...line} />
+      {/* viewfinder corners */}
+      <g {...line} stroke="var(--accent)" strokeWidth={3}>
+        <path d="M32 24 V10 H46" />
+        <path d="M114 10 H128 V24" />
+        <path d="M128 96 V110 H114" />
+        <path d="M46 110 H32 V96" />
+      </g>
+      <circle cx={126} cy={48} r={11} fill="var(--laterite)" stroke={INK} strokeWidth={2} />
+      <path d="M126 42 V49 M126 53 V54" {...line} stroke="var(--surface)" strokeWidth={2.5} />
+      <circle cx={126} cy={74} r={11} fill="var(--leaf)" stroke={INK} strokeWidth={2} />
+      <path d="M121 74 L125 78 L132 70" {...line} stroke="var(--surface)" strokeWidth={2.5} />
+    </svg>
+  );
+}
+
+/** A folded campus map with a walked route and a pin. */
+export function MapSpot({ className }: Props) {
+  const panels = ["M22 26 L58 16 L58 96 L22 106 Z", "M58 16 L100 28 L100 108 L58 96 Z", "M100 28 L138 18 L138 98 L100 108 Z"];
+  return (
+    <svg viewBox="0 0 160 120" className={className} aria-hidden>
+      {panels.map((d) => (
+        <path key={`s${d}`} d={d} fill="var(--leaf-soft)" transform="translate(4 4)" />
+      ))}
+      {panels.map((d, i) => (
+        <path key={`f${d}`} d={d} fill={i === 1 ? "var(--surface-2)" : "var(--surface)"} />
+      ))}
+      <rect x={30} y={40} width={18} height={14} rx={2} fill="var(--accent-soft)" stroke={INK} strokeWidth={1.5} />
+      <rect x={108} y={44} width={20} height={16} rx={2} fill="var(--marigold-soft)" stroke={INK} strokeWidth={1.5} />
+      <circle cx={78} cy={66} r={8} fill="var(--jacaranda-light)" stroke={INK} strokeWidth={1.5} />
+      <path d="M39 86 C50 80 60 76 70 70 M86 62 C96 56 104 54 116 70" {...line} stroke="var(--accent)" strokeWidth={3} strokeDasharray="1 7" />
+      {panels.map((d) => (
+        <path key={`l${d}`} d={d} {...line} />
+      ))}
+      <circle cx={39} cy={88} r={5} fill="var(--laterite)" stroke={INK} strokeWidth={1.5} />
+      <path d="M118 74 c-7 -9 -10 -13 -10 -18 a10 10 0 0 1 20 0 c0 5 -3 9 -10 18 z" fill="var(--accent)" stroke={INK} strokeWidth={2} strokeLinejoin="round" />
+      <circle cx={118} cy={56} r={3.5} fill="var(--surface)" />
+    </svg>
+  );
+}

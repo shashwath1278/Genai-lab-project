@@ -13,6 +13,7 @@ export type Status = {
   documents: number;
   chunks: number;
   openGaps: number;
+  webSearch?: boolean;
 };
 
 const selectClass = "h-9 rounded-full border border-line bg-surface text-[13px] text-ink transition-colors hover:border-line-strong";
@@ -97,13 +98,14 @@ export function Header({
 
         <ThemeToggle />
 
+        {/* Hidden on phones, where the header has no room; the landing page links it too. */}
         <Link
           href="/admin"
-          className="inline-flex h-9 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
+          className="hidden h-9 items-center gap-1.5 rounded-full px-2.5 sm:inline-flex text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
           title="Staff dashboard"
         >
           <SquaresFour size={16} aria-hidden />
-          <span className="hidden sm:inline">Staff</span>
+          <span>Staff</span>
           {!!status?.openGaps && (
             <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-laterite px-1 text-[10px] font-semibold text-white">{status.openGaps}</span>
           )}

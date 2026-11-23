@@ -24,7 +24,17 @@ Everything except the LLM call runs on your machine. Embeddings are computed loc
 - **Personas.** Applicant, student and parent each get a different tone, different starter questions and a retrieval boost toward their documents.
 - **Five languages, with voice.** Answers in English, Hindi, Kannada, Tamil or Telugu. Questions in those scripts, and romanized Hinglish ("hostel ka fees kitna hai"), are rewritten into an English search query first, so the English embedding model still finds the right passages. Questions can be spoken (Web Speech API) and answers read aloud.
 - **Plan board.** Pin answers, add deadlines from a timeline or turn a checklist into to-dos, then export dated items to your calendar (`.ics`).
-- **Provider fallback.** With both keys set, Gemini answers first. When it hits a rate limit or quota, Groq takes over: for 30 minutes after a daily quota, for 20 seconds after a per-minute limit. Free tiers are small; the Gemini key this was built with allowed 20 requests a day.
+- **Reads your documents.** Attach a photo or PDF (up to 3, via the paperclip, paste or drag and drop):
+  - **Fee receipt:** every line is checked in code against the official fee tables (tuition by programme and route, hostel, mess, bus, other fees). The card shows what matches, what's over or under and by how much, and whether the printed total adds up.
+  - **Marks or rank card:** the PCM aggregate is worked out from the subject marks. An editable form lets the student check the values, then asks for an eligibility check.
+  - **Notice or circular:** its dates go into My Plan in one tap.
+
+  Photos are shrunk in the browser (longest side 1,600 px) and read by a vision model: Groq's `qwen/qwen3.8-27b` first, then Gemini. Text PDFs are read as text. Files are never stored, the reader is told to leave out names and ID numbers, and text inside a document is treated as data, not instructions.
+- **Campus map with walking directions.** "Where is the Examination Section?" brings up a hand-drawn campus map in the site's style, zoomed to the route, plus turn-by-turn steps ("At Jacaranda Circle, turn left onto Central Walk…"). Routes come from Dijkstra over a walkway graph, not from the LLM. The same data generates a "Campus Map and Directions" document, so text answers and the map agree.
+- **Official-site web search (optional).** Northgate is fictional, but the world around it isn't: KCET and COMEDK schedules, government scholarships, certificates. With a Tavily key set, the assistant can search, limited to an allowlist of official domains (`gov.in`, `nic.in`, NTA, COMEDK, AICTE, UGC…). Results are filtered again on our side and shown on a separate "Beyond the handbook" card with `[W1]` citations. The model may never use them for Northgate's own facts, and questions answered this way aren't filed as handbook gaps.
+
+  Every web source shows its site's logo, the way search answers show favicons. Platforms like Reddit, X, GitHub and YouTube get their own marks (Phosphor brand icons), other sites their favicon, and government sites without one a government glyph. The logos appear on the card, as the inline citation chips, as a stacked "N web sources" button under the answer and in a "From the web" section of the Sources panel. The logo code handles any site, so widening the domain allowlist needs no UI work.
+- **Provider fallback.** With both keys set, Gemini answers first. When a model hits a rate limit or quota, the next one takes over: Groq's `gpt-oss-120b`, then its smaller `gpt-oss-20b` as a last resort. A model is skipped for 30 minutes after a daily quota and 20 seconds after a per-minute limit; limits are per model, so cooldowns are too. Free tiers are small: the Gemini key this was built with allowed 20 requests a day, and Groq allows 200,000 tokens a day per model (roughly 20-30 answers).
 
 ## Design
 
@@ -68,6 +78,8 @@ npm run dev                     # seeds the database on first run, then http://l
 - The first run downloads the embedding model (`Xenova/bge-small-en-v1.5`, about 33 MB) into `.cache/models`.
 - Without a key, the app still loads, and search, embeddings and the staff dashboard work. Chat shows a message asking for a key.
 - Set `ADMIN_PASSCODE` in `.env.local` to protect `/admin`; it's open when unset.
+- Optional: set `TAVILY_API_KEY` (free plan at https://app.tavily.com, 1,000 credits a month, no card) to turn on official-site web search. Each search costs 1 credit.
+- Reading photos uses your Groq key (`GROQ_VISION_MODEL`, default `qwen/qwen3.8-27b`) or your Gemini key (`GEMINI_VISION_MODEL`).
 
 | Script | What it does |
 |---|---|
@@ -82,36 +94,41 @@ npm run dev                     # seeds the database on first run, then http://l
 ## How a question is answered
 
 ```
+attachments ──► vision model reads each one (in memory) ──► code checks: fee audit, PCM aggregate
 question ──► rewrite to a standalone English query    (follow-ups, Indic scripts, Hinglish; skipped for a plain first English turn)
          ──► FTS5 BM25 top 20  ┐
              sqlite-vec top 20 ┴─► weighted reciprocal rank fusion ─► persona boost ─► top 6 passages
          ──► log query; weak match → knowledge gap
-         ──► stream: evidence part ─► LLM answer with [n] citations + tool calls ─► cards
+         ──► stream: evidence part ─► reading card ─► LLM answer with [n] / [Wn] citations + tool calls ─► cards
+             (tools: eligibility, cost, compare, dates, checklist, campus map, knowledge gap, official-site search)
 ```
 
 - **Chunking.** Markdown-aware: sections follow headings, the heading path is kept as the chunk label, tables are never split, and long prose is split by sentence with overlap. Chunks are embedded together with their document title and heading.
 - **Fusion.** Reciprocal rank fusion (k = 60), with keyword ranks weighted 0.7.
 - **Confidence.** Comes from the best cosine similarity: high ≥ 0.72, medium ≥ 0.64, otherwise low.
 - **Gap clustering.** Questions are reduced to their topic words ("swimming pool"), embedded, and grouped by online clustering (cosine ≥ 0.81). Comparing whole sentences didn't work: "Is there a swimming pool on campus?" scored closer to "Is there a gym on campus?" than to a rephrasing of the pool question.
-- **One source of truth for numbers.** The fee, scholarship, calendar, contact and document-checklist documents are generated from `data/structured/*.json`. The calculators read the same data, so cited text and card numbers can't disagree.
+- **One source of truth for numbers.** The fee, scholarship, calendar, contact, document-checklist and campus-map documents are generated from `data/structured/*.json` and `src/lib/campus-map.ts`. The calculators, the receipt audit and the router read the same data, so cited text and card numbers can't disagree.
+- **Rupees the model can't mangle.** Tool results reach the model with every amount already written out ("Rs 10,99,000 (Rs 10.99 lakh)") through `toModelOutput`. The cards still get the raw numbers.
 - **Citations across models.** Gemini cites `[2]`; gpt-oss writes `【2】`. Both are normalised before linking.
 
 ## Retrieval evaluation
 
-`npm run eval` scores 39 questions against an expected section (not just the right document), using top-5 retrieval:
+`npm run eval` scores 42 questions against an expected section (not just the right document), using top-5 retrieval:
 
 | Mode | hit@1 | hit@5 | MRR |
 |---|---|---|---|
-| Keyword (FTS5 BM25) | 82.1% | 97.4% | 0.885 |
-| Semantic (bge-small + sqlite-vec) | 89.7% | 100% | 0.940 |
-| **Hybrid (weighted RRF)** | **89.7%** | **100%** | **0.942** |
+| Keyword (FTS5 BM25) | 81.0% | 97.6% | 0.881 |
+| Semantic (bge-small + sqlite-vec) | 88.1% | 100% | 0.933 |
+| **Hybrid (weighted RRF)** | **88.1%** | **100%** | **0.933** |
 
 On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimming pool" still scores 0.73, because it sits close to the sports-facilities section. That is why there is a second gap signal: the model calls `flagKnowledgeGap` when the passages don't answer the question.
 
 ## Testing
 
-- **Unit tests** (`npm test`, Vitest, 50 tests):
+- **Unit tests** (`npm test`, Vitest, 103 tests):
   - chunker, calculators, retrieval fusion, gap clustering, calendar export and formatting (including the pre-written rupee figures the model is given)
+  - campus routing and place matching, the official-domain allowlist, reading parsing, the PCM aggregate and the fee-receipt audit
+  - the chat route with scripted models: map directions reach the model without the geometry, an attached receipt is read and audited and the image never reaches the answering model, and web-answered questions aren't filed as gaps
   - Hinglish detection, citation normalising and provider fallback
   - the chat route end to end with a scripted model
 - **Browser tests** (`npm run test:e2e`, Playwright in the installed Chrome). They run against a production build with a freshly seeded database, using the real LLM:
@@ -123,6 +140,7 @@ On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimm
     - eligibility, a follow-up with context, Hindi and Hinglish
     - deep links from the landing page
   - **Knowledge-gap loop:** an unanswerable question is flagged, a staff member answers it on `/admin`, and the same question is then answered from the new FAQ.
+  - **New features:** the campus map for an office, a fee-receipt photo checked line by line (`e2e/fixtures/fee-receipt.png`, a made-up receipt with one overcharge and a wrong total), and official-site search (skipped without a Tavily key).
   - **Admin:** document upload and delete
   - **Phone layout**
   - **Light and dark captures:** no console errors and no sideways scrolling. Screenshots land in `e2e-screens/`.

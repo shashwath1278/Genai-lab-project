@@ -39,7 +39,10 @@
     { "q": "can I get food on campus in the evening", "expect": ["campus-facilities#Food", "hostel-life#Mess and food"] },
     { "q": "who is the principal", "expect": ["about-northgate#Leadership"] },
     { "q": "can my parents see my marks online", "expect": ["student-support#Information for parents", "faq#parents track"] },
-    { "q": "what is the dress code", "expect": ["attendance-and-conduct#Code of conduct", "faq#uniform"] }
+    { "q": "what is the dress code", "expect": ["attendance-and-conduct#Code of conduct", "faq#uniform"] },
+    { "q": "Where is the Examination Section?", "expect": ["campus-map#Where things are", "contacts#Examination Section"] },
+    { "q": "how far is the girls hostel from the main gate", "expect": ["campus-map#"] },
+    { "q": "which building has the placement cell", "expect": ["campus-map#", "contacts#Training & Placement", "campus-facilities#Innovation Centre"] }
   ],
   "unanswerable": [
     "Is there a swimming pool on campus?",

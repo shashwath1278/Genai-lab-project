@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { EvidenceData } from "@/lib/chat-types";
 import type { Passage } from "@/lib/retrieval";
+import type { WebResult } from "@/lib/websearch";
+import { SiteLogo } from "../SiteLogo";
 import { SourcesSpot } from "../art/spots";
 import { ConfidenceBadge, cx, Meter, Pill } from "../ui";
 
@@ -78,7 +80,49 @@ function PassageCard({ p, terms, focused, focusTick }: { p: Passage; terms: stri
   );
 }
 
-export function EvidencePanel({ evidence, focusN, focusTick }: { evidence: EvidenceData | null; focusN: number | null; focusTick: number }) {
+function WebSources({ web, handbookFollows }: { web: WebResult[]; handbookFollows: boolean }) {
+  return (
+    <section aria-label="From the web">
+      <p className="eyebrow mb-2">From the web · official sites</p>
+      <ol className="space-y-2">
+        {web.map((w) => (
+          <li key={w.id} id={`web-source-${w.id}`} className="rounded-xl border border-dashed border-line-strong bg-surface p-3">
+            <div className="flex items-center gap-2">
+              <SiteLogo domain={w.domain} favicon={w.favicon} size={18} />
+              <span className="text-[12px] font-medium text-ink-2">{w.site}</span>
+              <span className="font-mono text-[10.5px] text-muted">{w.id}</span>
+            </div>
+            <a href={w.url} target="_blank" rel="noreferrer noopener" className="mt-1.5 block text-[12.5px] font-medium leading-snug text-ink underline decoration-line-strong underline-offset-2 hover:text-accent-text">
+              {w.title}
+            </a>
+            <p className="mt-0.5 font-mono text-[10.5px] text-muted">{w.domain}</p>
+            {w.snippet && <p className="mt-1 line-clamp-3 text-[12px] leading-relaxed text-ink-2">{w.snippet}</p>}
+          </li>
+        ))}
+      </ol>
+      {handbookFollows && <p className="eyebrow mb-0 mt-4">From the handbook</p>}
+    </section>
+  );
+}
+
+export function EvidencePanel({
+  evidence,
+  web = [],
+  focusN,
+  focusTick,
+}: {
+  evidence: EvidenceData | null;
+  web?: WebResult[];
+  focusN: number | null;
+  focusTick: number;
+}) {
+  if (!evidence && web.length) {
+    return (
+      <div className="p-4">
+        <WebSources web={web} handbookFollows={false} />
+      </div>
+    );
+  }
   if (!evidence) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
@@ -108,6 +152,8 @@ export function EvidencePanel({ evidence, focusN, focusTick }: { evidence: Evide
           {evidence.rewritten}
         </p>
       )}
+
+      {web.length > 0 && <WebSources web={web} handbookFollows={evidence.passages.length > 0} />}
 
       {evidence.passages.length === 0 ? (
         <p className="text-[13px] text-muted">No matching passages.</p>

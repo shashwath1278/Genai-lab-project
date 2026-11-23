@@ -1,4 +1,5 @@
 import {
+  type FileUIPart,
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -11,13 +12,16 @@ import type { CopilotMessage, EvidenceData } from "@/lib/chat-types";
 import { getLanguage, getPersona } from "@/lib/college";
 import { getCollegeData } from "@/lib/data";
 import { todayIso } from "@/lib/format";
-import { embedGapTopic, logQuery, recordGap } from "@/lib/gaps";
+import { embedGapTopic, logQuery, recordGap, retractGap } from "@/lib/gaps";
 import { hasNonAscii, looksHinglish } from "@/lib/language";
-import { friendlyLlmError, getModels } from "@/lib/llm";
-import { buildInstructions, buildRewritePrompt } from "@/lib/prompts";
+import { friendlyLlmError, getModels, getVisionModel } from "@/lib/llm";
+import { buildInstructions, buildRewritePrompt, describeReadings } from "@/lib/prompts";
+import { type Attachment, readAttachment, readingQuery, validateAttachments } from "@/lib/reader";
+import type { ReadingFile } from "@/lib/reading";
 import { retrieve } from "@/lib/retrieval";
 import { getSessionId } from "@/lib/session";
 import { createTools } from "@/lib/tools";
+import { webSearchEnabled } from "@/lib/websearch";
 
 export const maxDuration = 60;
 
@@ -32,6 +36,23 @@ const textOf = (m: CopilotMessage | undefined) =>
     .map((p) => (p as { text: string }).text)
     .join("\n")
     .trim();
+
+const filesOf = (m: CopilotMessage | undefined): Attachment[] =>
+  (m?.parts ?? [])
+    .filter((p): p is FileUIPart => p.type === "file")
+    .map((p) => ({ name: (p.filename ?? "attachment").slice(0, 80), mediaType: p.mediaType, url: p.url }));
+
+/**
+ * Files never go to the answering model (it may be text-only, and they were
+ * read already): each becomes a short note, and earlier readings travel as text.
+ */
+function withoutFiles(messages: CopilotMessage[]): CopilotMessage[] {
+  return messages.map((m) => {
+    const names = filesOf(m).map((f) => f.name);
+    if (!names.length) return m;
+    return { ...m, parts: [...m.parts.filter((p) => p.type !== "file"), { type: "text" as const, text: `[Attached: ${names.join(", ")}]` }] };
+  });
+}
 
 function reportError(error: unknown): string {
   console.error("[chat]", error);
@@ -64,12 +85,22 @@ export async function POST(req: Request) {
   const language = getLanguage(body.language).id;
   const messages = trimHistory(body.messages ?? []);
   const latest = messages.at(-1);
-  const question = latest?.role === "user" ? textOf(latest) : "";
+  const files = latest?.role === "user" ? filesOf(latest) : [];
+  const question = latest?.role === "user" ? textOf(latest) || (files.length ? "Read the attached document for me." : "") : "";
   if (!question) return Response.json({ error: "The last message must be a non-empty user message." }, { status: 400 });
+  const fileError = validateAttachments(files);
+  if (fileError) return Response.json({ error: fileError }, { status: 400 });
 
   const sessionId = await getSessionId();
   const data = getCollegeData();
   const today = todayIso();
+
+  // 0. Read attachments (in memory only; nothing is stored).
+  let readings: ReadingFile[] = [];
+  if (files.length) {
+    const vision = getVisionModel();
+    readings = await Promise.all(files.map((f) => readAttachment(f, { vision, text: models.fast, data })));
+  }
 
   // 1. Standalone English search query (follow-ups, other languages, Hinglish).
   const history = messages
@@ -88,6 +119,9 @@ export async function POST(req: Request) {
     }
   }
 
+  // Documents bring their own topic: a receipt should pull up the fee tables.
+  if (readings.length) rewritten = [rewritten, ...readings.map(readingQuery)].join(" ").replace(/\s+/g, " ").trim().slice(0, 400);
+
   // 2. Hybrid retrieval, logged; weak matches are filed as knowledge gaps straight away.
   const retrieval = await retrieve(rewritten, { persona });
   const queryId = logQuery({
@@ -100,7 +134,8 @@ export async function POST(req: Request) {
     confidence: retrieval.confidence,
     topicEmbedding: await embedGapTopic(rewritten),
   });
-  if (retrieval.confidence === "low") recordGap(queryId, "low-confidence");
+  // A question about the user's own document isn't a hole in the handbook.
+  if (retrieval.confidence === "low" && !readings.length) recordGap(queryId, "low-confidence");
 
   const evidence: EvidenceData = {
     queryId,
@@ -122,13 +157,32 @@ export async function POST(req: Request) {
     execute: async ({ writer }) => {
       writer.write({ type: "start" });
       writer.write({ type: "data-evidence", id: `evidence-${queryId}`, data: evidence });
+      if (readings.length) writer.write({ type: "data-reading", id: `reading-${queryId}`, data: { files: readings } });
       const result = streamText({
         model: models.main,
-        instructions: buildInstructions({ persona, language, passages: retrieval.passages, confidence: retrieval.confidence, data, today }),
-        messages: await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true }),
+        instructions: buildInstructions({ persona, language, passages: retrieval.passages, confidence: retrieval.confidence, data, today, webSearch: webSearchEnabled(), attachments: readings }),
+        messages: await convertToModelMessages(withoutFiles(messages), {
+          tools,
+          ignoreIncompleteToolCalls: true,
+          // Earlier readings stay in the conversation as text, for follow-ups.
+          convertDataPart: (part) =>
+            part.type === "data-reading"
+              ? { type: "text", text: `(What was read from the user's attachments earlier: ${describeReadings((part.data as { files: ReadingFile[] }).files)})` }
+              : undefined,
+        }),
         tools,
         stopWhen: isStepCount(5),
         providerOptions: LIGHT_REASONING,
+        // A question answered from official sites (and not flagged by the model)
+        // was about the outside world, not a hole in the handbook.
+        onFinish: ({ steps }) => {
+          const results = steps.flatMap((s) => s.toolResults);
+          const answeredFromWeb = results.some((r) => {
+            const out = r.toolName === "searchOfficialWeb" ? (r.output as { results?: unknown[] }) : null;
+            return !!out?.results?.length;
+          });
+          if (answeredFromWeb && !results.some((r) => r.toolName === "flagKnowledgeGap")) retractGap(queryId);
+        },
       });
       // Errors inside the model stream (provider errors, tool failures) are
       // reported through this stream's own onError, not the outer one.

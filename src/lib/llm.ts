@@ -56,11 +56,13 @@ export function isRateLimited(error: unknown): boolean {
   return APICallError.isInstance(e) && (e.statusCode === 429 || /quota|rate.?limit/i.test(e.message));
 }
 
-// Free tiers are small (Gemini's can be 20 requests a day; Groq's 8,000 tokens
-// a minute). When a provider says "too many requests" we skip it and use the
-// next one: for a long while after a daily quota, briefly after a per-minute one.
-const g = globalThis as unknown as { __llmCooldown?: Map<ProviderId, number> };
-const cooldown = (g.__llmCooldown ??= new Map<ProviderId, number>());
+// Free tiers are small (Gemini's can be 20 requests a day; Groq's 200,000
+// tokens a day per model). When a model says "too many requests" we skip it and
+// use the next one: for a long while after a daily quota, briefly after a
+// per-minute one. Limits are per model, so cooldowns are too.
+const g = globalThis as unknown as { __llmCooldown?: Map<string, number> };
+const cooldown = (g.__llmCooldown ??= new Map<string, number>());
+const keyOf = (m: { id: ProviderId; model: LanguageModelV4 }) => `${m.id}:${m.model.modelId}`;
 
 function cooldownFor(error: unknown): number {
   const e = rootError(error);
@@ -68,21 +70,41 @@ function cooldownFor(error: unknown): number {
   return /per.?day|daily|RPD|TPD|quota/i.test(message) ? 30 * 60_000 : 20_000;
 }
 
-export function withFallback(models: { id: ProviderId; model: LanguageModelV4 }[]): LanguageModelV4 {
-  if (models.length === 1) return models[0].model;
+/** "Please try again in 1m2.5s" / "in 637.5ms" → milliseconds, if the provider says. */
+export function retryAfterMs(error: unknown): number | null {
+  const e = rootError(error);
+  const m = (e instanceof Error ? e.message : String(e)).match(/try again in (?:(\d+)m)?([\d.]+)(ms|s)\b/i);
+  if (!m) return null;
+  return Number(m[1] ?? 0) * 60_000 + Number(m[2]) * (m[3].toLowerCase() === "ms" ? 1 : 1000);
+}
 
+const SHORT_WAIT_MS = 25_000;
+
+export function withFallback(models: { id: ProviderId; model: LanguageModelV4 }[]): LanguageModelV4 {
   async function attempt<T>(call: (m: LanguageModelV4) => PromiseLike<T>): Promise<T> {
-    const ready = models.filter((m) => (cooldown.get(m.id) ?? 0) <= Date.now());
+    const ready = models.filter((m) => (cooldown.get(keyOf(m)) ?? 0) <= Date.now());
     let lastError: unknown;
+    let soonest: { m: (typeof models)[number]; wait: number } | null = null;
     for (const m of ready.length ? ready : models) {
       try {
         return await call(m.model);
       } catch (error) {
         if (!isRateLimited(error)) throw error;
-        cooldown.set(m.id, Date.now() + cooldownFor(error));
-        console.warn(`[llm] ${m.id} is rate-limited; trying the next provider`);
+        cooldown.set(keyOf(m), Date.now() + cooldownFor(error));
+        console.warn(`[llm] ${keyOf(m)} is rate-limited; trying the next model`);
         lastError = error;
+        const wait = retryAfterMs(error);
+        const daily = cooldownFor(error) > SHORT_WAIT_MS;
+        if (wait != null && !daily && wait <= SHORT_WAIT_MS && (!soonest || wait < soonest.wait)) soonest = { m, wait };
       }
+    }
+    // Every model is busy. A per-minute limit that clears in a few seconds (a
+    // two-step answer can overshoot Groq's 8,000 tokens a minute by a little)
+    // is worth waiting for, once, rather than failing the answer.
+    if (soonest) {
+      await new Promise((r) => setTimeout(r, soonest.wait + 300));
+      cooldown.delete(keyOf(soonest.m));
+      return await call(soonest.m.model);
     }
     throw lastError;
   }
@@ -103,10 +125,31 @@ export function getModels(): { main: LanguageModelV4; fast: LanguageModelV4; inf
   const info = getProviderInfo();
   if (!list.length || !info) return null;
   return {
-    main: withFallback(list.map((p) => ({ id: p.id, model: p.make(p.model) }))),
+    // The last provider's small model is a last resort for answers, so the
+    // assistant keeps working (a little less polished) when the big models' daily quotas run out.
+    main: withFallback([
+      ...list.map((p) => ({ id: p.id, model: p.make(p.model) })),
+      ...list.slice(-1).filter((p) => p.fastModel !== p.model).map((p) => ({ id: p.id, model: p.make(p.fastModel) })),
+    ]),
     fast: withFallback(list.map((p) => ({ id: p.id, model: p.make(p.fastModel) }))),
     info,
   };
+}
+
+/**
+ * A model that can read images, for attached photos and scans. Groq's vision
+ * model comes first here because its free tier is far larger than Gemini's;
+ * Gemini (which also reads PDFs natively) is the fallback.
+ */
+export function getVisionModel(): { model: LanguageModelV4; pdf: LanguageModelV4 | null; label: string } | null {
+  const list: { id: ProviderId; model: LanguageModelV4 }[] = [];
+  const groqApiKey = groqKey();
+  if (groqApiKey) list.push({ id: "groq", model: createGroq({ apiKey: groqApiKey })(process.env.GROQ_VISION_MODEL || "qwen/qwen3.8-27b") });
+  const gemini = geminiKey();
+  const geminiVision = gemini ? createGoogle({ apiKey: gemini })(process.env.GEMINI_VISION_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash") : null;
+  if (geminiVision) list.push({ id: "gemini", model: geminiVision });
+  if (!list.length) return null;
+  return { model: withFallback(list), pdf: geminiVision, label: list.map((m) => m.model.modelId).join(" → ") };
 }
 
 /** Turn provider errors into something a student can act on. */

@@ -9,6 +9,10 @@ describe("normalizeCitations", () => {
     expect(normalizeCitations("Plain [1] stays")).toBe("Plain [1] stays");
   });
 
+  it("keeps web citations", () => {
+    expect(normalizeCitations("Exam on 18 April【W1】 and 【W2†L1】")).toBe("Exam on 18 April[W1] and [W2]");
+  });
+
   it("drops bracketed tool names that aren't passages", () => {
     expect(normalizeCitations("Total is Rs 10,99,000 【estimateCost】.")).toBe("Total is Rs 10,99,000.");
     expect(normalizeCitations("Fee 【1】 and 【tool:compare】")).toBe("Fee [1] and");

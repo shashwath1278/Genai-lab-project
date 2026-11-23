@@ -5,11 +5,44 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { normalizeCitations } from "@/lib/citations";
 import type { Passage } from "@/lib/retrieval";
+import type { WebResult } from "@/lib/websearch";
+import { SiteLogo } from "../SiteLogo";
 
-/** Turns [n] markers that match a retrieved passage into #cite-n links. */
-export function linkCitations(text: string, passages: Pick<Passage, "n">[]): string {
+/**
+ * Turns [n] markers that match a retrieved passage into #cite-n links, and
+ * [Wn] markers that match a web result into #web-Wn links.
+ */
+export function linkCitations(text: string, passages: Pick<Passage, "n">[], web: Pick<WebResult, "id">[] = []): string {
   const valid = new Set(passages.map((p) => p.n));
-  return normalizeCitations(text).replace(/\[(\d{1,2})\](?!\()/g, (m, n) => (valid.has(Number(n)) ? `[${n}](#cite-${n})` : m));
+  const webIds = new Set(web.map((w) => w.id));
+  return normalizeCitations(text)
+    .replace(/\[(\d{1,2})\](?!\()/g, (m, n) => (valid.has(Number(n)) ? `[${n}](#cite-${n})` : m))
+    .replace(/\[(W\d{1,2})\](?!\()/g, (m, id) => (webIds.has(id) ? `[${id}](#web-${id})` : m));
+}
+
+function WebChip({ result }: { result: WebResult }) {
+  return (
+    <span className="group relative inline-block align-baseline">
+      <a
+        href={result.url}
+        target="_blank"
+        rel="noreferrer noopener"
+        data-cite
+        aria-label={`Official source ${result.id}: ${result.title}, ${result.domain} (opens the site)`}
+        className="mx-0.5 inline-flex h-5 max-w-36 -translate-y-px items-center gap-1 rounded-full border border-line bg-surface py-0 pl-0.5 pr-2 text-[11.5px] font-medium text-ink-2 no-underline transition-colors hover:border-accent hover:text-accent-text"
+      >
+        <SiteLogo domain={result.domain} favicon={result.favicon} size={15} className="rounded-full border-0" />
+        <span className="truncate">{result.site}</span>
+      </a>
+      <span
+        role="tooltip"
+        className="pointer-events-none invisible absolute bottom-full left-0 z-20 mb-1.5 w-72 rounded-lg border border-line bg-surface p-2.5 text-left opacity-0 shadow-card transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+      >
+        <span className="block text-[12px] font-medium text-ink">{result.title}</span>
+        <span className="block font-mono text-[11px] text-muted">{result.domain}</span>
+      </span>
+    </span>
+  );
 }
 
 function CitationChip({ passage, onCite }: { passage: Passage; onCite: (n: number) => void }) {
@@ -40,10 +73,12 @@ function CitationChip({ passage, onCite }: { passage: Passage; onCite: (n: numbe
 export const AnswerMarkdown = memo(function AnswerMarkdown({
   text,
   passages,
+  web = [],
   onCite,
 }: {
   text: string;
   passages: Passage[];
+  web?: WebResult[];
   onCite: (n: number) => void;
 }) {
   return (
@@ -55,6 +90,9 @@ export const AnswerMarkdown = memo(function AnswerMarkdown({
             const cite = href?.match(/^#cite-(\d+)$/);
             const passage = cite && passages.find((p) => p.n === Number(cite[1]));
             if (passage) return <CitationChip passage={passage} onCite={onCite} />;
+            const webRef = href?.match(/^#web-(W\d+)$/);
+            const result = webRef && web.find((w) => w.id === webRef[1]);
+            if (result) return <WebChip result={result} />;
             return (
               <a href={href} target="_blank" rel="noreferrer">
                 {children}
@@ -68,7 +106,7 @@ export const AnswerMarkdown = memo(function AnswerMarkdown({
           ),
         }}
       >
-        {linkCitations(text, passages)}
+        {linkCitations(text, passages, web)}
       </ReactMarkdown>
     </div>
   );
