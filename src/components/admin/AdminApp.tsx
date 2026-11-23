@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowLeft, BarChart3, Files, Inbox, KeyRound, type LucideIcon } from "lucide-react";
+import { ArrowLeft, ChartBar, Files, Tray, Key, type Icon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { BrandMark } from "../chat/AssistantMessage";
+import { BrandMark } from "../art/Brand";
+import { ThemeToggle } from "../ThemeToggle";
 import { Button, cx } from "../ui";
 import { api, type AdminDocument, type AdminStats, type GapSummary } from "./api";
 import { Documents } from "./Documents";
@@ -28,7 +29,7 @@ function Passcode({ onDone }: { onDone: () => void }) {
         }
       }}
     >
-      <KeyRound size={20} className="text-accent-text" aria-hidden />
+      <Key size={20} className="text-accent-text" aria-hidden />
       <h1 className="mt-2 text-[17px] font-semibold text-ink">Staff dashboard</h1>
       <p className="mt-1 text-[13px] text-ink-2">Enter passcode</p>
       <input
@@ -85,10 +86,10 @@ export default function AdminApp() {
   if (auth && !auth.authed) return <Passcode onDone={checkAuth} />;
 
   const openGaps = gaps.filter((g) => g.status === "open").length;
-  const tabs: { id: Tab; label: string; icon: LucideIcon; count?: number }[] = [
-    { id: "gaps", label: "Knowledge gaps", icon: Inbox, count: openGaps },
+  const tabs: { id: Tab; label: string; icon: Icon; count?: number }[] = [
+    { id: "gaps", label: "Knowledge gaps", icon: Tray, count: openGaps },
     { id: "documents", label: "Documents", icon: Files, count: documents.length },
-    { id: "usage", label: "Usage", icon: BarChart3 },
+    { id: "usage", label: "Usage", icon: ChartBar },
   ];
 
   return (
@@ -97,10 +98,11 @@ export default function AdminApp() {
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4">
           <BrandMark className="size-8" />
           <div className="leading-tight">
-            <p className="font-display text-[17px] font-semibold tracking-tight text-ink">Staff dashboard</p>
+            <p className="font-display text-[24px] leading-none tracking-tight text-ink">Staff <em className="text-accent-text">dashboard</em></p>
 
           </div>
-          <Link href="/" className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink">
+          <ThemeToggle className="ml-auto" />
+          <Link href="/chat" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-surface-2 hover:text-ink">
             <ArrowLeft size={15} aria-hidden /> Back to chat
           </Link>
         </div>

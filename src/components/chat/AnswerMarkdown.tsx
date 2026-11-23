@@ -3,12 +3,13 @@
 import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { normalizeCitations } from "@/lib/citations";
 import type { Passage } from "@/lib/retrieval";
 
 /** Turns [n] markers that match a retrieved passage into #cite-n links. */
 export function linkCitations(text: string, passages: Pick<Passage, "n">[]): string {
   const valid = new Set(passages.map((p) => p.n));
-  return text.replace(/\[(\d{1,2})\](?!\()/g, (m, n) => (valid.has(Number(n)) ? `[${n}](#cite-${n})` : m));
+  return normalizeCitations(text).replace(/\[(\d{1,2})\](?!\()/g, (m, n) => (valid.has(Number(n)) ? `[${n}](#cite-${n})` : m));
 }
 
 function CitationChip({ passage, onCite }: { passage: Passage; onCite: (n: number) => void }) {

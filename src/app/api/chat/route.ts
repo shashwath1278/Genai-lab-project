@@ -12,6 +12,7 @@ import { getLanguage, getPersona } from "@/lib/college";
 import { getCollegeData } from "@/lib/data";
 import { todayIso } from "@/lib/format";
 import { embedGapTopic, logQuery, recordGap } from "@/lib/gaps";
+import { hasNonAscii, looksHinglish } from "@/lib/language";
 import { friendlyLlmError, getModels } from "@/lib/llm";
 import { buildInstructions, buildRewritePrompt } from "@/lib/prompts";
 import { retrieve } from "@/lib/retrieval";
@@ -20,12 +21,22 @@ import { createTools } from "@/lib/tools";
 
 export const maxDuration = 60;
 
+// Answers are lookups and short explanations, not puzzles: keep reasoning
+// light (faster, and within Groq's per-minute token budget). Each provider
+// reads only its own key.
+const LIGHT_REASONING = { groq: { reasoningEffort: "low" } } as const;
+
 const textOf = (m: CopilotMessage | undefined) =>
   (m?.parts ?? [])
     .filter((p) => p.type === "text")
     .map((p) => (p as { text: string }).text)
     .join("\n")
     .trim();
+
+function reportError(error: unknown): string {
+  console.error("[chat]", error);
+  return friendlyLlmError(error);
+}
 
 /** Last dozen messages, starting at a user turn (some providers require that). */
 function trimHistory(messages: CopilotMessage[]): CopilotMessage[] {
@@ -60,15 +71,16 @@ export async function POST(req: Request) {
   const data = getCollegeData();
   const today = todayIso();
 
-  // 1. Standalone English search query (follow-ups, other languages).
+  // 1. Standalone English search query (follow-ups, other languages, Hinglish).
   const history = messages
     .slice(0, -1)
     .map((m) => ({ role: m.role as "user" | "assistant", text: textOf(m) }))
     .filter((m) => m.text && (m.role === "user" || m.role === "assistant"));
   let rewritten = question;
-  if (history.length || language !== "en" || /[^\x00-\x7F]/.test(question)) {
+  if (history.length || language !== "en" || hasNonAscii(question) || looksHinglish(question)) {
     try {
-      const { text } = await generateText({ model: models.fast, prompt: buildRewritePrompt(history, question), maxOutputTokens: 80 });
+      // Room for reasoning models (gpt-oss) to think before the one-line answer.
+      const { text } = await generateText({ model: models.fast, prompt: buildRewritePrompt(history, question), maxOutputTokens: 400, providerOptions: LIGHT_REASONING });
       const line = text.trim().split("\n")[0].replace(/^["'`]+|["'`]+$/g, "").trim();
       if (line) rewritten = line;
     } catch (err) {
@@ -116,13 +128,13 @@ export async function POST(req: Request) {
         messages: await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true }),
         tools,
         stopWhen: isStepCount(5),
+        providerOptions: LIGHT_REASONING,
       });
-      writer.merge(toUIMessageStream({ stream: result.stream, sendStart: false, sendReasoning: false }));
+      // Errors inside the model stream (provider errors, tool failures) are
+      // reported through this stream's own onError, not the outer one.
+      writer.merge(toUIMessageStream({ stream: result.stream, sendStart: false, sendReasoning: false, onError: reportError }));
     },
-    onError: (error) => {
-      console.error("[chat]", error);
-      return friendlyLlmError(error);
-    },
+    onError: reportError,
   });
   return createUIMessageStreamResponse({ stream });
 }

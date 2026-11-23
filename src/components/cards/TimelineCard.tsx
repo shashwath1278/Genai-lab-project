@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, CalendarPlus, Check, ChevronDown } from "lucide-react";
+import { CalendarBlank, CalendarPlus, Check, CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { DatesResult } from "@/lib/calculators";
 import { formatDateRange } from "@/lib/format";
@@ -34,7 +34,7 @@ export function TimelineCard({ result }: { result: DatesResult }) {
 
   return (
     <CardFrame
-      icon={CalendarDays}
+      icon={CalendarBlank}
       title="Key dates"
       actions={
         upcoming.length > 0 && (
@@ -89,7 +89,7 @@ export function TimelineCard({ result }: { result: DatesResult }) {
           className="mt-2 inline-flex items-center gap-1 text-[12.5px] font-medium text-accent-text hover:underline"
           aria-expanded={showAll}
         >
-          <ChevronDown size={14} className={cx("transition-transform", showAll && "rotate-180")} aria-hidden />
+          <CaretDown size={14} className={cx("transition-transform", showAll && "rotate-180")} aria-hidden />
           {showAll ? "Less" : `${result.items.length - PREVIEW} more`}
         </button>
       )}

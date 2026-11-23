@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { normalizeCitations } from "@/lib/citations";
 
 // Browser-native voice: Web Speech API for input, speechSynthesis for read-aloud.
 // Nothing leaves the browser except what the browser's own engine does.
@@ -70,7 +71,7 @@ export function useSpeechInput(lang: string, onText: (text: string, final: boole
 
 /** Markdown and citation markers removed, so the voice reads clean sentences. */
 export function speakableText(markdown: string): string {
-  return markdown
+  return normalizeCitations(markdown)
     .replace(/\[(\d{1,2})\]/g, "")
     .replace(/[*_`#>|]/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")

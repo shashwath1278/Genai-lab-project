@@ -13,6 +13,41 @@ export function formatLakh(amount: number): string {
   return `Rs ${(amount / 100000).toFixed(2).replace(/\.?0+$/, "")} lakh`;
 }
 
+const MONEY_KEYS = new Set([
+  "tuition",
+  "scholarship",
+  "annualFees",
+  "hostel",
+  "mess",
+  "transport",
+  "total",
+  "grand",
+  "amount",
+  "oneTime",
+  "refundableDeposits",
+  "feePerYear",
+  "lowestFeePerYear",
+]);
+
+/**
+ * A copy of a calculator result for the language model, with every rupee
+ * figure already written out: 1099000 -> "Rs 10,99,000 (Rs 10.99 lakh)".
+ * Models slip when regrouping big numbers the Indian way (one wrote
+ * 1,09,90,000 for 10,99,000), so they get strings to copy instead of
+ * integers to format. Only numbers under a money key change.
+ */
+export function moneyForModel(value: unknown, key = ""): unknown {
+  if (typeof value === "number") {
+    if (!MONEY_KEYS.has(key)) return value;
+    return Math.abs(value) >= 100000 ? `${formatINR(value)} (${formatLakh(value)})` : formatINR(value);
+  }
+  if (Array.isArray(value)) return value.map((v) => moneyForModel(v, key));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, moneyForModel(v, k)]));
+  }
+  return value;
+}
+
 export function formatNumber(n: number): string {
   return inr.format(n);
 }

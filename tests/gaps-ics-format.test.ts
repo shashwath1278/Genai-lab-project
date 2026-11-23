@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cosine } from "../src/lib/embeddings";
-import { formatDateRange, formatINR, formatLakh } from "../src/lib/format";
+import { formatDateRange, formatINR, formatLakh, moneyForModel } from "../src/lib/format";
 import { gapTopic, mergeCentroid, nearestCluster } from "../src/lib/gaps";
 import { buildIcs } from "../src/lib/ics";
 
@@ -64,6 +64,23 @@ describe("format", () => {
     expect(formatLakh(1099000)).toBe("Rs 10.99 lakh");
     expect(formatLakh(250000)).toBe("Rs 2.5 lakh");
     expect(formatLakh(48000)).toBe("Rs 48,000");
+  });
+
+  it("pre-writes rupee figures for the model, leaving other numbers alone", () => {
+    const out = moneyForModel({
+      years: [{ year: 1, tuition: 225000, scholarship: -55000, total: 274750 }],
+      oneTime: [{ name: "Caution", amount: 10000, refundable: true }],
+      totals: { grand: 1099000, oneTime: 10000 },
+      program: { durationYears: 4 },
+      choices: { hostel: "Triple room" },
+    });
+    expect(out).toEqual({
+      years: [{ year: 1, tuition: "Rs 2,25,000 (Rs 2.25 lakh)", scholarship: "Rs -55,000", total: "Rs 2,74,750 (Rs 2.75 lakh)" }],
+      oneTime: [{ name: "Caution", amount: "Rs 10,000", refundable: true }],
+      totals: { grand: "Rs 10,99,000 (Rs 10.99 lakh)", oneTime: "Rs 10,000" },
+      program: { durationYears: 4 },
+      choices: { hostel: "Triple room" },
+    });
   });
 
   it("formats ranges compactly", () => {

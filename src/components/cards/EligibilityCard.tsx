@@ -1,22 +1,22 @@
 "use client";
 
-import { CheckCircle2, CircleHelp, GraduationCap, MinusCircle, Pin, TriangleAlert, XCircle, type LucideIcon } from "lucide-react";
+import { CheckCircle, Question, GraduationCap, MinusCircle, PushPin, Warning, XCircle, type Icon } from "@phosphor-icons/react";
 import type { CheckStatus, EligibilityResult, Verdict } from "@/lib/calculators";
 import { formatINR } from "@/lib/format";
 import { usePlan } from "../plan/PlanContext";
 import { CardFrame, cx, IconButton, Pill } from "../ui";
 
-const VERDICT: Record<Verdict, { label: string; tone: "good" | "warning" | "critical" | "neutral"; icon: LucideIcon }> = {
-  likely: { label: "Good chance", tone: "good", icon: CheckCircle2 },
-  borderline: { label: "Borderline", tone: "warning", icon: TriangleAlert },
+const VERDICT: Record<Verdict, { label: string; tone: "good" | "warning" | "critical" | "neutral"; icon: Icon }> = {
+  likely: { label: "Good chance", tone: "good", icon: CheckCircle },
+  borderline: { label: "Borderline", tone: "warning", icon: Warning },
   unlikely: { label: "Unlikely", tone: "critical", icon: XCircle },
   "not-eligible": { label: "Not eligible", tone: "critical", icon: XCircle },
-  "needs-info": { label: "Need details", tone: "neutral", icon: CircleHelp },
+  "needs-info": { label: "Need details", tone: "neutral", icon: Question },
 };
 
-const CHECK: Record<CheckStatus, { icon: LucideIcon; className: string; label: string }> = {
-  pass: { icon: CheckCircle2, className: "text-good-text", label: "Meets" },
-  warn: { icon: TriangleAlert, className: "text-warning-text", label: "Close" },
+const CHECK: Record<CheckStatus, { icon: Icon; className: string; label: string }> = {
+  pass: { icon: CheckCircle, className: "text-good-text", label: "Meets" },
+  warn: { icon: Warning, className: "text-warning-text", label: "Close" },
   fail: { icon: XCircle, className: "text-critical-text", label: "Doesn't meet" },
   unknown: { icon: MinusCircle, className: "text-muted", label: "To confirm" },
 };
@@ -44,7 +44,7 @@ export function EligibilityCard({ result }: { result: EligibilityResult }) {
             <v.icon size={12} aria-hidden />
             {v.label}
           </Pill>
-          <IconButton label="Pin to plan" icon={Pin} onClick={pin} />
+          <IconButton label="Pin to plan" icon={PushPin} onClick={pin} />
         </>
       }
     >

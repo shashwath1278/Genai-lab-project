@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored third-party components, kept unmodified.
+    "src/components/reactbits/**",
+    // Playwright output.
+    "test-results/**",
+    "playwright-report/**",
   ]),
 ]);
 

@@ -1,5 +1,5 @@
-import Workspace from "@/components/chat/Workspace";
+import Landing from "@/components/landing/Landing";
 
 export default function Home() {
-  return <Workspace />;
+  return <Landing />;
 }

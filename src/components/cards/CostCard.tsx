@@ -1,6 +1,6 @@
 "use client";
 
-import { Pin, Wallet } from "lucide-react";
+import { PushPin, Wallet } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { CostEstimate } from "@/lib/calculators";
 import { formatINR, formatLakh } from "@/lib/format";
@@ -64,7 +64,7 @@ export function CostCard({ estimate }: { estimate: CostEstimate }) {
     <CardFrame
       icon={Wallet}
       title={`${estimate.program.code} via ${estimate.route.exam}`}
-      actions={<IconButton label="Pin to plan" icon={Pin} onClick={pin} />}
+      actions={<IconButton label="Pin to plan" icon={PushPin} onClick={pin} />}
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <p className="text-[32px] font-semibold leading-tight tracking-tight text-ink">

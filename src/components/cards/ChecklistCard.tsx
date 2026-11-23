@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardCheck, ListPlus, Mail } from "lucide-react";
+import { ListChecks, ListPlus, Envelope } from "@phosphor-icons/react";
 import { useState } from "react";
 import type { ChecklistResult } from "@/lib/calculators";
 import { formatINR } from "@/lib/format";
@@ -29,7 +29,7 @@ export function ChecklistCard({ result }: { result: ChecklistResult }) {
 
   return (
     <CardFrame
-      icon={ClipboardCheck}
+      icon={ListChecks}
       title={`Join ${result.program.code} via ${result.route.exam}`}
       actions={
         <Button size="sm" variant="primary" icon={ListPlus} onClick={addAll}>
@@ -71,7 +71,7 @@ export function ChecklistCard({ result }: { result: ChecklistResult }) {
         </span>
         {result.contact && (
           <a className="inline-flex items-center gap-1 text-ink-2 hover:text-ink" href={`mailto:${result.contact.email}`} title={`${result.contact.office}, ${result.contact.phone}`}>
-            <Mail size={13} aria-hidden /> {result.contact.email}
+            <Envelope size={13} aria-hidden /> {result.contact.email}
           </a>
         )}
       </div>

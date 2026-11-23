@@ -1,8 +1,10 @@
 "use client";
 
-import { Check, Copy, CornerDownRight, Pin, ThumbsDown, ThumbsUp, Volume2, VolumeX } from "lucide-react";
+import { ArrowBendDownRight, Check, Copy, PushPin, SpeakerHigh, SpeakerSlash, ThumbsDown, ThumbsUp } from "@phosphor-icons/react";
+import { motion } from "motion/react";
 import { useState } from "react";
 import type { CopilotMessage, EvidenceData } from "@/lib/chat-types";
+import { BrandMark } from "../art/Brand";
 import { isToolPart, ToolPartView } from "../cards/ToolPartView";
 import { usePlan } from "../plan/PlanContext";
 import { CONFIDENCE, cx, IconButton } from "../ui";
@@ -20,17 +22,6 @@ export const messageText = (m: CopilotMessage) =>
     .map((p) => (p as { text: string }).text)
     .join("\n\n")
     .trim();
-
-export function BrandMark({ className }: { className?: string }) {
-  // A gate arch: Northgate's mark.
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <rect width="24" height="24" rx="7" fill="var(--accent)" />
-      <path d="M6.5 18V11a5.5 5.5 0 0 1 11 0v7" fill="none" stroke="var(--accent-ink)" strokeWidth="2" strokeLinecap="round" />
-      <path d="M10 18v-5.5a2 2 0 0 1 4 0V18" fill="none" stroke="var(--accent-ink)" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 export function TypingDots({ label }: { label: string }) {
   return (
@@ -92,7 +83,13 @@ export function AssistantMessage({
   };
 
   return (
-    <article className="group/msg rise flex gap-3" aria-busy={working}>
+    <motion.article
+      className="group/msg flex gap-3"
+      aria-busy={working}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
       <BrandMark className="mt-0.5 size-7 shrink-0" />
       <div className="min-w-0 flex-1 pt-0.5">
         {message.parts.map((part, i) => {
@@ -106,6 +103,7 @@ export function AssistantMessage({
         })}
 
         {working && !hasContent && <TypingDots label={evidence ? "Writing…" : "Searching…"} />}
+        {!working && !hasContent && <p className="py-1 text-[14px] text-muted">No answer came back. Try asking again.</p>}
 
         {!working && hasContent && (
           <div className="mt-2 flex flex-wrap items-center gap-0.5">
@@ -125,8 +123,8 @@ export function AssistantMessage({
               </button>
             )}
             <span className="flex items-center opacity-100 transition-opacity md:opacity-0 md:group-hover/msg:opacity-100 md:focus-within:opacity-100">
-              <IconButton label={speaking ? "Stop" : "Read aloud"} icon={speaking ? VolumeX : Volume2} active={speaking} onClick={onSpeak} disabled={!text} />
-              <IconButton label="Pin to plan" icon={Pin} onClick={pin} disabled={!text} />
+              <IconButton label={speaking ? "Stop" : "Read aloud"} icon={speaking ? SpeakerSlash : SpeakerHigh} active={speaking} onClick={onSpeak} disabled={!text} />
+              <IconButton label="Pin to plan" icon={PushPin} onClick={pin} disabled={!text} />
               <IconButton label={copied ? "Copied" : "Copy"} icon={copied ? Check : Copy} onClick={copy} disabled={!text} />
               {evidence && (
                 <>
@@ -140,19 +138,22 @@ export function AssistantMessage({
 
         {isLast && !working && evidence && evidence.related.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {evidence.related.map((r) => (
-              <button
+            {evidence.related.map((r, i) => (
+              <motion.button
                 key={r.label + r.docTitle}
                 type="button"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 + i * 0.06 }}
                 onClick={() => onFollowUp(`Tell me about ${r.label.toLowerCase()} (${r.docTitle})`)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-[12.5px] text-ink-2 transition-colors hover:border-line-strong hover:text-ink"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-[12.5px] text-ink-2 transition-colors hover:border-accent hover:text-accent-text"
               >
-                <CornerDownRight size={12} aria-hidden /> {r.label}
-              </button>
+                <ArrowBendDownRight size={12} aria-hidden /> {r.label}
+              </motion.button>
             ))}
           </div>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, TriangleAlert } from "lucide-react";
+import { CircleNotch, Warning } from "@phosphor-icons/react";
 import type { ChecklistResult, CompareResult, CostEstimate, DatesResult, EligibilityResult } from "@/lib/calculators";
 import type { CopilotMessage } from "@/lib/chat-types";
 import { ChecklistCard } from "./ChecklistCard";
@@ -29,7 +29,7 @@ export function ToolPartView({ part }: { part: Part }) {
   if (part.state === "input-streaming" || part.state === "input-available") {
     return (
       <div className="my-3 flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-3 text-[13px] text-ink-2">
-        <Loader2 size={15} className="animate-spin text-muted" aria-hidden />
+        <CircleNotch size={15} className="animate-spin text-muted" aria-hidden />
         {WORKING[part.type] ?? "Working"}…
       </div>
     );
@@ -65,7 +65,7 @@ export function ToolPartView({ part }: { part: Part }) {
 function ToolError({ message }: { message: string }) {
   return (
     <div className="my-3 flex items-start gap-2 rounded-xl border border-line bg-surface px-4 py-3 text-[13px] text-ink-2">
-      <TriangleAlert size={15} className="mt-0.5 shrink-0 text-warning-text" aria-hidden />
+      <Warning size={15} className="mt-0.5 shrink-0 text-warning-text" aria-hidden />
       <span>{message}</span>
     </div>
   );

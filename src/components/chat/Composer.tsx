@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Mic, MicOff, Square } from "lucide-react";
+import { ArrowUp, Microphone, MicrophoneSlash, Stop } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { getLanguage } from "@/lib/college";
 import { cx } from "../ui";
@@ -98,7 +98,7 @@ export function Composer({
               voice.listening ? "bg-accent-soft text-accent-text" : "text-muted hover:bg-surface-2 hover:text-ink",
             )}
           >
-            {voice.listening ? <MicOff size={17} aria-hidden /> : <Mic size={17} aria-hidden />}
+            {voice.listening ? <MicrophoneSlash size={17} aria-hidden /> : <Microphone size={17} aria-hidden />}
           </button>
         )}
         {busy ? (
@@ -109,7 +109,7 @@ export function Composer({
             title="Stop"
             className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-ink text-bg hover:opacity-85"
           >
-            <Square size={13} fill="currentColor" aria-hidden />
+            <Stop size={13} weight="fill" aria-hidden />
           </button>
         ) : (
           <button

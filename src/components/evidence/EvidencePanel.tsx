@@ -1,9 +1,9 @@
 "use client";
 
-import { BookOpen } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { EvidenceData } from "@/lib/chat-types";
 import type { Passage } from "@/lib/retrieval";
+import { SourcesSpot } from "../art/spots";
 import { ConfidenceBadge, cx, Meter, Pill } from "../ui";
 
 function highlight(text: string, terms: string[]): ReactNode[] {
@@ -81,9 +81,10 @@ function PassageCard({ p, terms, focused, focusTick }: { p: Passage; terms: stri
 export function EvidencePanel({ evidence, focusN, focusTick }: { evidence: EvidenceData | null; focusN: number | null; focusTick: number }) {
   if (!evidence) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center text-muted">
-        <BookOpen size={20} aria-hidden />
-        <p className="text-[13px]">Sources appear here</p>
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+        <SourcesSpot className="h-24 w-32 opacity-90" />
+        <p className="font-display text-[22px] leading-tight text-ink">Sources appear here</p>
+        <p className="max-w-56 text-[13px] text-muted">Every answer links to the handbook passage it came from.</p>
       </div>
     );
   }

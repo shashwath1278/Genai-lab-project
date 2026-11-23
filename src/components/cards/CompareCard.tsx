@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, Columns3, Pin } from "lucide-react";
+import { Medal, Columns, PushPin } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import type { CompareResult } from "@/lib/calculators";
 import { formatINR } from "@/lib/format";
@@ -43,7 +43,7 @@ export function CompareCard({ result }: { result: CompareResult }) {
   );
 
   return (
-    <CardFrame icon={Columns3} title={programs.map((p) => p.code).join(" vs ")} actions={<IconButton label="Pin to plan" icon={Pin} onClick={pin} />}>
+    <CardFrame icon={Columns} title={programs.map((p) => p.code).join(" vs ")} actions={<IconButton label="Pin to plan" icon={PushPin} onClick={pin} />}>
       <div className="-mx-4 overflow-x-auto px-4 scrollbar-thin">
         <table className="w-full min-w-120 tabular-nums">
           <thead>
@@ -55,7 +55,7 @@ export function CompareCard({ result }: { result: CompareResult }) {
                   <span className="mt-1 flex flex-wrap gap-1">
                     {BADGES.filter(([key]) => result.best[key] === p.code).map(([key, label]) => (
                       <Pill key={key} tone="accent" className="text-[10.5px]!">
-                        <Award size={11} aria-hidden />
+                        <Medal size={11} aria-hidden />
                         {label}
                       </Pill>
                     ))}

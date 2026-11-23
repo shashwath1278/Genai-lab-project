@@ -1,9 +1,10 @@
 "use client";
 
-import { CheckCircle2, FileUp, Inbox, MessageSquarePlus, RotateCcw, X } from "lucide-react";
+import { ArrowCounterClockwise, ChatText, CheckCircle, UploadSimple, X } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { getLanguage, getPersona } from "@/lib/college";
 import type { GapReason } from "@/lib/gaps";
+import { GapSpot } from "../art/spots";
 import { Button, cx, Pill } from "../ui";
 import { api, timeAgo, type GapSummary } from "./api";
 
@@ -97,7 +98,7 @@ function GapItem({ gap, onChanged }: { gap: GapSummary; onChanged: (message?: st
                 className="w-full rounded-lg border border-line bg-surface px-2.5 py-2 text-[13.5px] text-ink placeholder:text-muted"
               />
               <div className="flex gap-2">
-                <Button variant="primary" size="sm" icon={CheckCircle2} disabled={busy || !answer.trim() || !title.trim()} onClick={saveAnswer}>
+                <Button variant="primary" size="sm" icon={CheckCircle} disabled={busy || !answer.trim() || !title.trim()} onClick={saveAnswer}>
                   {busy ? "Saving…" : "Publish"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setMode("idle")}>
@@ -107,10 +108,10 @@ function GapItem({ gap, onChanged }: { gap: GapSummary; onChanged: (message?: st
             </div>
           ) : (
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button size="sm" variant="primary" icon={MessageSquarePlus} onClick={() => setMode("answer")}>
+              <Button size="sm" variant="primary" icon={ChatText} onClick={() => setMode("answer")}>
                 Answer
               </Button>
-              <Button size="sm" icon={FileUp} disabled={busy} onClick={() => file.current?.click()}>
+              <Button size="sm" icon={UploadSimple} disabled={busy} onClick={() => file.current?.click()}>
                 {busy ? "Uploading…" : "Upload"}
               </Button>
               <Button size="sm" variant="ghost" icon={X} disabled={busy} onClick={dismiss}>
@@ -148,9 +149,10 @@ export function GapList({ gaps, onChanged }: { gaps: GapSummary[]; onChanged: (m
   return (
     <div className="space-y-6">
       {open.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line-strong px-6 py-10 text-center text-muted">
-          <Inbox size={20} className="mx-auto" aria-hidden />
-          <p className="mt-2 text-[13.5px]">No open gaps</p>
+        <div className="flex flex-col items-center rounded-3xl border border-dashed border-line-strong px-6 py-12 text-center">
+          <GapSpot className="h-24 w-32" />
+          <p className="mt-3 font-display text-[24px] leading-tight text-ink">No open gaps</p>
+          <p className="mt-1 text-[13.5px] text-muted">Questions the handbook can&apos;t answer will land here.</p>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -169,14 +171,14 @@ export function GapList({ gaps, onChanged }: { gaps: GapSummary[]; onChanged: (m
             {closed.map((g) => (
               <li key={g.id} className="flex items-center gap-3 px-4 py-2.5 text-[13px]">
                 <span className={cx("shrink-0", g.status === "resolved" ? "text-good-text" : "text-muted")}>
-                  {g.status === "resolved" ? <CheckCircle2 size={15} aria-label="Resolved" /> : <X size={15} aria-label="Dismissed" />}
+                  {g.status === "resolved" ? <CheckCircle size={15} aria-label="Resolved" /> : <X size={15} aria-label="Dismissed" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="text-ink">{g.label}</span>
                   {g.resolvedDocument && <span className="text-muted"> → {g.resolvedDocument.title}</span>}
                 </span>
                 <span className="shrink-0 text-[12px] text-muted">{g.count}×</span>
-                <Button size="sm" variant="ghost" icon={RotateCcw} onClick={() => reopen(g.id)}>
+                <Button size="sm" variant="ghost" icon={ArrowCounterClockwise} onClick={() => reopen(g.id)}>
                   Reopen
                 </Button>
               </li>

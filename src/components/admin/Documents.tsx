@@ -1,6 +1,6 @@
 "use client";
 
-import { FileUp, Trash2 } from "lucide-react";
+import { UploadSimple, Trash } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { PERSONAS } from "@/lib/college";
 import { Button, IconButton, Pill } from "../ui";
@@ -95,7 +95,7 @@ function UploadBox({ onDone }: { onDone: (message: string) => void }) {
         </fieldset>
       </div>
       <div className="mt-3 flex items-center gap-3">
-        <Button variant="primary" icon={FileUp} disabled={!file || busy} onClick={submit}>
+        <Button variant="primary" icon={UploadSimple} disabled={!file || busy} onClick={submit}>
           {busy ? "Uploading…" : "Upload"}
         </Button>
         {error && <p className="text-[12.5px] text-critical-text">{error}</p>}
@@ -148,7 +148,7 @@ export function Documents({ documents, onChanged }: { documents: AdminDocument[]
                   <td className="px-2 py-2 text-right text-ink">{d.chunks}</td>
                   <td className="px-2 py-2 text-ink-2">{timeAgo(d.createdAt)}</td>
                   <td className="px-2 py-1">
-                    {(d.sourceType === "upload" || d.sourceType === "faq") && <IconButton label={`Delete ${d.title}`} icon={Trash2} onClick={() => remove(d)} />}
+                    {(d.sourceType === "upload" || d.sourceType === "faq") && <IconButton label={`Delete ${d.title}`} icon={Trash} onClick={() => remove(d)} />}
                   </td>
                 </tr>
               ))}

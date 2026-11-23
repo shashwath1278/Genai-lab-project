@@ -1,8 +1,9 @@
 "use client";
 
-import { CalendarPlus, ClipboardList, Download, StickyNote, Trash2 } from "lucide-react";
+import { CalendarPlus, ClipboardText, DownloadSimple, Note, Trash } from "@phosphor-icons/react";
 import type { PlanItem } from "@/lib/plan";
 import { daysBetween, formatDate, todayIso } from "@/lib/format";
+import { PlanSpot } from "../art/spots";
 import { cx, IconButton } from "../ui";
 import { usePlan } from "./PlanContext";
 
@@ -20,7 +21,7 @@ function Row({ item, today }: { item: PlanItem; today: string }) {
   return (
     <li className="group flex items-start gap-2.5 rounded-lg px-2 py-1.5 hover:bg-surface-2">
       {item.kind === "note" ? (
-        <StickyNote size={15} className="mt-0.5 shrink-0 text-muted" aria-hidden />
+        <Note size={15} className="mt-0.5 shrink-0 text-muted" aria-hidden />
       ) : (
         <input
           type="checkbox"
@@ -38,15 +39,15 @@ function Row({ item, today }: { item: PlanItem; today: string }) {
           </p>
         )}
       </div>
-      <IconButton label="Remove" icon={Trash2} onClick={() => remove(item.id)} className="opacity-0 group-hover:opacity-100 focus:opacity-100" />
+      <IconButton label="Remove" icon={Trash} onClick={() => remove(item.id)} className="opacity-0 group-hover:opacity-100 focus:opacity-100" />
     </li>
   );
 }
 
 const SECTIONS = [
   { kind: "deadline", title: "Dates", icon: CalendarPlus },
-  { kind: "task", title: "To do", icon: ClipboardList },
-  { kind: "note", title: "Notes", icon: StickyNote },
+  { kind: "task", title: "To do", icon: ClipboardText },
+  { kind: "note", title: "Notes", icon: Note },
 ] as const;
 
 export function PlanBoard() {
@@ -58,9 +59,10 @@ export function PlanBoard() {
 
   if (!items.length) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center text-muted">
-        <ClipboardList size={20} aria-hidden />
-        <p className="text-[13px]">Pinned items appear here</p>
+      <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+        <PlanSpot className="h-24 w-32 opacity-90" />
+        <p className="font-display text-[22px] leading-tight text-ink">Your plan is empty</p>
+        <p className="max-w-56 text-[13px] text-muted">Pin answers, dates and checklists to build it.</p>
       </div>
     );
   }
@@ -83,7 +85,7 @@ export function PlanBoard() {
           )}
           aria-disabled={!datedOpen}
         >
-          <Download size={14} aria-hidden /> Export
+          <DownloadSimple size={14} aria-hidden /> Export
         </a>
       </div>
       {SECTIONS.map((s) => {

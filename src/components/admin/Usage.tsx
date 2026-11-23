@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, CircleHelp, Flag, type LucideIcon } from "lucide-react";
+import { Warning, CheckCircle, Question, Flag, type Icon } from "@phosphor-icons/react";
 import { getLanguage, getPersona } from "@/lib/college";
 import { formatNumber } from "@/lib/format";
 import { ConfidenceBadge } from "../ui";
@@ -47,10 +47,10 @@ function BarList({ title, rows, total }: { title: string; rows: { label: string;
   );
 }
 
-const CONF: Record<string, { label: string; icon: LucideIcon; color: string; text: string }> = {
-  high: { label: "Strong match", icon: CheckCircle2, color: "var(--good)", text: "text-good-text" },
-  medium: { label: "Partial match", icon: AlertTriangle, color: "var(--warning)", text: "text-warning-text" },
-  low: { label: "Weak match", icon: CircleHelp, color: "var(--critical)", text: "text-critical-text" },
+const CONF: Record<string, { label: string; icon: Icon; color: string; text: string }> = {
+  high: { label: "Strong match", icon: CheckCircle, color: "var(--good)", text: "text-good-text" },
+  medium: { label: "Partial match", icon: Warning, color: "var(--warning)", text: "text-warning-text" },
+  low: { label: "Weak match", icon: Question, color: "var(--critical)", text: "text-critical-text" },
 };
 
 export function Usage({ stats }: { stats: AdminStats }) {

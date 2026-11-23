@@ -45,3 +45,9 @@ next-env.d.ts
 /data/*.db
 /data/*.db-*
 /.cache/
+
+# end-to-end runs
+/.next-e2e/
+/test-results/
+/playwright-report/
+/e2e-screens/

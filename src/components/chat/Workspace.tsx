@@ -2,7 +2,9 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { BookOpen, ClipboardList, RotateCcw, SquarePen, TriangleAlert, X } from "lucide-react";
+import { ArrowCounterClockwise, BookOpen, ClipboardText, NotePencil, Warning, X } from "@phosphor-icons/react";
+import { AnimatePresence, motion, MotionConfig } from "motion/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { CopilotMessage } from "@/lib/chat-types";
 import { getLanguage, LANGUAGES, PERSONAS, type LanguageId, type PersonaId } from "@/lib/college";
@@ -66,9 +68,11 @@ function readError(error: Error | undefined): string | null {
 
 export default function Workspace() {
   return (
-    <PlanProvider>
-      <WorkspaceInner />
-    </PlanProvider>
+    <MotionConfig reducedMotion="user">
+      <PlanProvider>
+        <WorkspaceInner />
+      </PlanProvider>
+    </MotionConfig>
   );
 }
 
@@ -109,6 +113,29 @@ function WorkspaceInner() {
   }, [messages, status]);
 
   useEffect(() => () => stopSpeaking(), []);
+
+  useEffect(() => {
+    if (!drawer) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setDrawer(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [drawer]);
+
+  // Deep links from the landing page: /chat?persona=parent&q=... sets the
+  // persona and asks the question once, then tidies the URL.
+  const params = useSearchParams();
+  const router = useRouter();
+  const deepLinked = useRef(false);
+  useEffect(() => {
+    if (deepLinked.current) return;
+    deepLinked.current = true;
+    const p = params.get("persona") as PersonaId | null;
+    const q = params.get("q")?.trim();
+    const linkedPersona = p && PERSONA_IDS.includes(p) ? p : null;
+    if (linkedPersona) setPersona(linkedPersona);
+    if (q) sendMessage({ text: q }, { body: { persona: linkedPersona ?? persona, language } });
+    if (p || q) router.replace("/chat", { scroll: false });
+  }, [params, router, setPersona, sendMessage, persona, language]);
 
   const withEvidence = messages.filter((m) => m.role === "assistant" && getEvidence(m));
   const selected = messages.find((m) => m.id === selectedId && getEvidence(m)) ?? withEvidence.at(-1);
@@ -167,8 +194,8 @@ function WorkspaceInner() {
   };
 
   const errorText = readError(error);
-  const panel = (
-    <SidePanel tab={tab} onTab={setTab} planCount={plan.items.filter((i) => !i.done).length}>
+  const panel = (id: string) => (
+    <SidePanel id={id} tab={tab} onTab={setTab} planCount={plan.items.filter((i) => !i.done).length}>
       {tab === "evidence" ? <EvidencePanel evidence={evidence} focusN={focus?.n ?? null} focusTick={focus?.tick ?? 0} /> : <PlanBoard />}
     </SidePanel>
   );
@@ -186,7 +213,7 @@ function WorkspaceInner() {
       />
       {info && !info.llm && (
         <div className="flex items-center justify-center gap-2 border-b border-line bg-surface-2 px-4 py-1.5 text-[12.5px] text-ink-2">
-          <TriangleAlert size={14} className="shrink-0 text-warning-text" aria-hidden />
+          <Warning size={14} className="shrink-0 text-warning-text" aria-hidden />
           <span>
             Add <code className="font-mono text-[12px]">GEMINI_API_KEY</code> or <code className="font-mono text-[12px]">GROQ_API_KEY</code> to{" "}
             <code className="font-mono text-[12px]">.env.local</code> to chat.
@@ -204,11 +231,18 @@ function WorkspaceInner() {
                 <div className="space-y-6 pt-2">
                   {messages.map((m, i) =>
                     m.role === "user" ? (
-                      <div key={m.id} className="rise flex justify-end">
-                        <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md border border-line bg-surface px-4 py-2.5 text-[15px] text-ink shadow-card">
+                      <motion.div
+                        key={m.id}
+                        className="flex justify-end"
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ type: "spring", bounce: 0.25, duration: 0.45 }}
+                        style={{ transformOrigin: "100% 100%" }}
+                      >
+                        <p className="max-w-[85%] whitespace-pre-wrap rounded-3xl rounded-br-md bg-accent px-4 py-2.5 text-[15px] text-accent-ink shadow-card">
                           {messageText(m)}
                         </p>
-                      </div>
+                      </motion.div>
                     ) : (
                       <AssistantMessage
                         key={m.id}
@@ -247,10 +281,10 @@ function WorkspaceInner() {
             <div className="mx-auto max-w-3xl px-4 pb-3 sm:px-6">
               {errorText && (
                 <div className="mb-2 flex items-start gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-[13px] text-ink-2">
-                  <TriangleAlert size={15} className="mt-0.5 shrink-0 text-critical-text" aria-hidden />
+                  <Warning size={15} className="mt-0.5 shrink-0 text-critical-text" aria-hidden />
                   <span className="flex-1">{errorText}</span>
                   {messages.length > 0 && (
-                    <Button size="sm" variant="ghost" icon={RotateCcw} onClick={() => regenerate({ body: { persona, language } })}>
+                    <Button size="sm" variant="ghost" icon={ArrowCounterClockwise} onClick={() => regenerate({ body: { persona, language } })}>
                       Retry
                     </Button>
                   )}
@@ -258,7 +292,7 @@ function WorkspaceInner() {
               )}
               {messages.length > 0 && (
                 <div className="mb-2 flex justify-end">
-                  <Button size="sm" variant="ghost" icon={SquarePen} onClick={newChat}>
+                  <Button size="sm" variant="ghost" icon={NotePencil} onClick={newChat}>
                     New chat
                   </Button>
                 </div>
@@ -268,36 +302,75 @@ function WorkspaceInner() {
           </div>
         </main>
 
-        <aside className="hidden w-105 shrink-0 border-l border-line lg:flex lg:flex-col">{panel}</aside>
+        <aside className="hidden w-105 shrink-0 border-l border-line bg-surface/40 lg:flex lg:flex-col">{panel("aside")}</aside>
       </div>
 
-      {drawer && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label={tab === "evidence" ? "Sources" : "Plan"}>
-          <button type="button" aria-label="Close" className="absolute inset-0 bg-black/30" onClick={() => setDrawer(false)} />
-          <div className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-line bg-bg shadow-card">
-            <div className="flex justify-end px-2 pt-2">
-              <Button size="sm" variant="ghost" icon={X} onClick={() => setDrawer(false)}>
-                Close
-              </Button>
-            </div>
-            {panel}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {drawer && (
+          <motion.div
+            key="drawer"
+            className="fixed inset-0 z-40 lg:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label={tab === "evidence" ? "Sources" : "Plan"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Backdrop: a pointer convenience; keyboard users get Escape and the Close button. */}
+            <div aria-hidden className="absolute inset-0 bg-ink/30" onClick={() => setDrawer(false)} />
+            <motion.div
+              className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-line bg-bg shadow-card"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+            >
+              <div className="flex justify-end px-2 pt-2">
+                <Button size="sm" variant="ghost" icon={X} onClick={() => setDrawer(false)}>
+                  Close
+                </Button>
+              </div>
+              {panel("drawer")}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {plan.toast && (
-        <div role="status" className="rise fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-bg shadow-card">
-          {plan.toast}
-        </div>
-      )}
+      <AnimatePresence>
+        {plan.toast && (
+          <motion.div
+            key="toast"
+            role="status"
+            className="fixed bottom-24 left-1/2 z-50 rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-bg shadow-card"
+            initial={{ opacity: 0, y: 12, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 8, x: "-50%" }}
+          >
+            {plan.toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function SidePanel({ tab, onTab, planCount, children }: { tab: "evidence" | "plan"; onTab: (t: "evidence" | "plan") => void; planCount: number; children: ReactNode }) {
+function SidePanel({
+  id,
+  tab,
+  onTab,
+  planCount,
+  children,
+}: {
+  id: string;
+  tab: "evidence" | "plan";
+  onTab: (t: "evidence" | "plan") => void;
+  planCount: number;
+  children: ReactNode;
+}) {
   const tabs = [
     { id: "evidence" as const, label: "Sources", icon: BookOpen },
-    { id: "plan" as const, label: "Plan", icon: ClipboardList, count: planCount },
+    { id: "plan" as const, label: "Plan", icon: ClipboardText, count: planCount },
   ];
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -310,13 +383,14 @@ function SidePanel({ tab, onTab, planCount, children }: { tab: "evidence" | "pla
             aria-selected={tab === t.id}
             onClick={() => onTab(t.id)}
             className={cx(
-              "-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-[13px] font-medium transition-colors",
-              tab === t.id ? "border-accent text-ink" : "border-transparent text-muted hover:text-ink",
+              "relative -mb-px inline-flex items-center gap-1.5 px-3 py-2.5 text-[13.5px] font-medium transition-colors",
+              tab === t.id ? "text-ink" : "text-muted hover:text-ink",
             )}
           >
-            <t.icon size={14} aria-hidden />
+            <t.icon size={15} weight={tab === t.id ? "duotone" : "regular"} aria-hidden />
             {t.label}
             {!!t.count && <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent-soft px-1 text-[10px] font-semibold text-accent-text">{t.count}</span>}
+            {tab === t.id && <motion.span layoutId={`tab-underline-${id}`} className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-accent" />}
           </button>
         ))}
       </div>

@@ -1,3 +1,4 @@
+import type { JSONValue } from "@ai-sdk/provider";
 import { tool } from "ai";
 import { z } from "zod";
 import {
@@ -10,6 +11,7 @@ import {
   suggestContact,
 } from "./calculators";
 import type { CollegeData } from "./college-data";
+import { moneyForModel } from "./format";
 import { recordGap } from "./gaps";
 
 // Each tool's output renders as a card in the chat (see components/cards).
@@ -18,6 +20,9 @@ const EXAMS = ["KCET", "COMEDK", "JEE Main", "PGCET", "CAT", "MAT", "GATE", "Man
 const DATE_CATEGORIES = ["all", "admissions", "academics", "exams", "events", "hostel", "scholarships"] as const;
 
 /** Calculator errors go back to the model as data so it can correct itself. */
+/** What the model reads back: the card's result, with rupee figures pre-written to copy. */
+const forModel = ({ output }: { output: unknown }) => ({ type: "json" as const, value: moneyForModel(output) as JSONValue });
+
 function safe<T>(fn: () => T): T | { error: string } {
   try {
     return fn();
@@ -44,6 +49,7 @@ export function createTools({ data, queryId, question, today }: { data: CollegeD
         score: z.number().optional().describe("GATE score."),
       }),
       execute: async (input) => safe(() => checkEligibility(data, input)),
+      toModelOutput: forModel,
     }),
 
     estimateCost: tool({
@@ -71,6 +77,7 @@ export function createTools({ data, queryId, question, today }: { data: CollegeD
         years: z.number().optional().describe("Number of years to include; defaults to the full programme."),
       }),
       execute: async (input) => safe(() => estimateCost(data, input)),
+      toModelOutput: forModel,
     }),
 
     comparePrograms: tool({
@@ -79,6 +86,7 @@ export function createTools({ data, queryId, question, today }: { data: CollegeD
         programs: z.array(z.string()).min(2).max(4).describe(programHelp),
       }),
       execute: async ({ programs }) => safe(() => comparePrograms(data, programs)),
+      toModelOutput: forModel,
     }),
 
     getImportantDates: tool({

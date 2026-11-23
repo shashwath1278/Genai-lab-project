@@ -1,25 +1,38 @@
 @import "tailwindcss";
 
-/* Design tokens. Chart surfaces and series/status colors follow the validated
-   reference palette (light #fcfcfb / dark #1a1a19 card surfaces). */
+/* "Garden city" palette: jacaranda (accent), laterite brick, rain-tree green
+   and marigold on warm paper; an aubergine night for dark mode.
+   Series and status colours are the validated chart palette (checked against
+   these surfaces), kept separate from the brand colours. */
 :root {
   color-scheme: light;
-  --bg: #f4f3ee;
-  --surface: #fcfcfb;
-  --surface-2: #f0efea;
-  --surface-3: #e8e7e0;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --muted: #7d7b75;
-  --line: #e1e0d9;
-  --line-strong: #c3c2b7;
-  --accent: #8b1d41;
-  --accent-hover: #74152f;
+  --bg: #f5efe4;
+  --surface: #fffcf6;
+  --surface-2: #f0e9dc;
+  --surface-3: #e7decd;
+  --ink: #1f1a2e;
+  --ink-2: #4a4458;
+  --muted: #857e8f;
+  --line: #e4dbcb;
+  --line-strong: #cfc4b0;
+
+  --accent: #5b3db5;
+  --accent-hover: #4a2f9a;
   --accent-ink: #ffffff;
-  --accent-soft: #f5e6eb;
-  --accent-text: #8b1d41;
-  --mark: #fde58a;
-  --mark-ink: #0b0b0b;
+  --accent-soft: #ece5fa;
+  --accent-text: #5b3db5;
+
+  --laterite: #c05a35;
+  --laterite-soft: #f6e1d6;
+  --leaf: #2e6b4e;
+  --leaf-soft: #dcece2;
+  --marigold: #e3a33a;
+  --marigold-soft: #fbeed3;
+  --jacaranda-light: #a78bea;
+  --sky: #e9e0f7;
+
+  --mark: #f7dc93;
+  --mark-ink: #1f1a2e;
 
   --good: #0ca30c;
   --good-text: #006300;
@@ -34,31 +47,46 @@
   --series-4: #eda100;
   --series-5: #e87ba4;
   --series-6: #008300;
-  --seq-track: #cde2fb;
-  --seq-fill: #2a78d6;
+  --seq-track: #ddd2f5;
+  --seq-fill: #5b3db5;
 
-  --shadow: 0 1px 2px rgb(11 11 11 / 0.04), 0 8px 24px -12px rgb(11 11 11 / 0.12);
+  --shadow: 0 1px 2px rgb(31 26 46 / 0.05), 0 10px 30px -14px rgb(31 26 46 / 0.18);
+  --grain-opacity: 0.045;
 }
 
+/* Dark tokens apply when the system prefers dark (unless the visitor picked
+   light with the toggle) or when the visitor picked dark. Same values twice:
+   CSS can't share one block between a media query and an attribute selector. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0d0d0d;
-    --surface: #1a1a19;
-    --surface-2: #222220;
-    --surface-3: #2c2c2a;
-    --ink: #f0efec;
-    --ink-2: #c3c2b7;
-    --muted: #98968f;
-    --line: #2c2c2a;
-    --line-strong: #3d3d3a;
-    --accent: #e3809d;
-    --accent-hover: #ee9bb3;
-    --accent-ink: #1a0a10;
-    --accent-soft: rgb(227 128 157 / 0.14);
-    --accent-text: #ef9db5;
-    --mark: rgb(250 204 21 / 0.32);
-    --mark-ink: #f0efec;
+    --bg: #14111b;
+    --surface: #1c1826;
+    --surface-2: #241f30;
+    --surface-3: #2e283b;
+    --ink: #f2ece2;
+    --ink-2: #c9c1d3;
+    --muted: #968da4;
+    --line: #2c2638;
+    --line-strong: #3d3550;
+
+    --accent: #b9a2f5;
+    --accent-hover: #cbb8fa;
+    --accent-ink: #1a1030;
+    --accent-soft: rgb(185 162 245 / 0.14);
+    --accent-text: #c6b3f8;
+
+    --laterite: #e2825c;
+    --laterite-soft: rgb(226 130 92 / 0.16);
+    --leaf: #74b892;
+    --leaf-soft: rgb(116 184 146 / 0.15);
+    --marigold: #f0bc5e;
+    --marigold-soft: rgb(240 188 94 / 0.15);
+    --jacaranda-light: #8c70d6;
+    --sky: #221c30;
+
+    --mark: rgb(240 188 94 / 0.3);
+    --mark-ink: #f2ece2;
 
     --good-text: #0ca30c;
     --warning-text: #fab219;
@@ -70,11 +98,59 @@
     --series-4: #c98500;
     --series-5: #d55181;
     --series-6: #008300;
-    --seq-track: #184f95;
-    --seq-fill: #5598e7;
+    --seq-track: #3a3156;
+    --seq-fill: #b9a2f5;
 
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px -16px rgb(0 0 0 / 0.6);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 14px 34px -16px rgb(0 0 0 / 0.7);
+    --grain-opacity: 0.06;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14111b;
+  --surface: #1c1826;
+  --surface-2: #241f30;
+  --surface-3: #2e283b;
+  --ink: #f2ece2;
+  --ink-2: #c9c1d3;
+  --muted: #968da4;
+  --line: #2c2638;
+  --line-strong: #3d3550;
+
+  --accent: #b9a2f5;
+  --accent-hover: #cbb8fa;
+  --accent-ink: #1a1030;
+  --accent-soft: rgb(185 162 245 / 0.14);
+  --accent-text: #c6b3f8;
+
+  --laterite: #e2825c;
+  --laterite-soft: rgb(226 130 92 / 0.16);
+  --leaf: #74b892;
+  --leaf-soft: rgb(116 184 146 / 0.15);
+  --marigold: #f0bc5e;
+  --marigold-soft: rgb(240 188 94 / 0.15);
+  --jacaranda-light: #8c70d6;
+  --sky: #221c30;
+
+  --mark: rgb(240 188 94 / 0.3);
+  --mark-ink: #f2ece2;
+
+  --good-text: #0ca30c;
+  --warning-text: #fab219;
+  --critical-text: #e66767;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --seq-track: #3a3156;
+  --seq-fill: #b9a2f5;
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 14px 34px -16px rgb(0 0 0 / 0.7);
+  --grain-opacity: 0.06;
 }
 
 @theme inline {
@@ -92,27 +168,45 @@
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
+  --color-laterite: var(--laterite);
+  --color-laterite-soft: var(--laterite-soft);
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
+  --color-marigold: var(--marigold);
+  --color-marigold-soft: var(--marigold-soft);
   --color-good: var(--good);
   --color-good-text: var(--good-text);
   --color-warning: var(--warning);
   --color-warning-text: var(--warning-text);
   --color-critical: var(--critical);
   --color-critical-text: var(--critical-text);
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-bricolage), system-ui, "Segoe UI", "Nirmala UI", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-display: var(--font-instrument), Georgia, serif;
   --shadow-card: var(--shadow);
 }
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
+  font-optical-sizing: auto;
+}
+
+/* Paper grain over everything; purely decorative. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 ::selection {
@@ -191,6 +285,22 @@ mark {
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: var(--line-strong) transparent;
+}
+
+/* Small uppercase label set in mono: the "index card" voice. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* GSAP SplitText line masks (linesClass "rl"): a little room so italic
+   descenders aren't clipped while a line rises into view. */
+.rl-mask {
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
 }
 
 @keyframes flash-ring {

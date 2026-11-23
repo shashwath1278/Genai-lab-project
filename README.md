@@ -4,6 +4,10 @@ An AI college-information assistant built on retrieval-augmented generation (RAG
 
 Everything except the LLM call runs on your machine. Embeddings are computed locally with transformers.js. One SQLite file holds the documents, the keyword index (FTS5), the vector index (sqlite-vec), the structured college data and the app's own tables.
 
+- `/`: landing page
+- `/chat`: the assistant
+- `/admin`: staff dashboard
+
 ## What makes it different from a plain chatbot
 
 - **Every answer shows its receipts.** Inline citation chips `[1]` link to a Sources panel. The panel shows:
@@ -11,15 +15,39 @@ Everything except the LLM call runs on your machine. Embeddings are computed loc
   - keyword (BM25) hits vs semantic (vector) hits, and how they were fused
   - the exact passages used, with the matched words highlighted
 - **Answers as cards, not walls of text.** The LLM calls tools that compute results from structured data, so numbers are calculated, never guessed:
-  - eligibility verdict against last year's cutoffs, with category relaxation
-  - year-by-year cost breakdown (tuition by quota, hostel, mess, bus, scholarship)
-  - side-by-side programme comparison
-  - deadline timeline with countdowns
+  - eligibility verdict against last year's cutoffs
+  - year-by-year cost breakdown
+  - programme comparison
+  - deadline timeline
   - admission checklist
-- **Knowledge-gap loop for staff.** A question gets logged as a gap when retrieval is weak, the model says the handbook doesn't cover it, or a user taps 👎. Gaps are grouped with similar questions on the `/admin` dashboard. Staff can type an answer or upload a PDF/Markdown file; it's indexed immediately and cited in the next answer.
-- **Personas.** Prospective student, current student and parent each get a different tone, different starter questions and a retrieval boost toward their documents.
-- **Five languages, with voice.** Answers in English, Hindi, Kannada, Tamil or Telugu. Questions in any of them are rewritten into an English search query first, so the English embedding model still finds the right passages. Questions can be spoken (Web Speech API) and answers read aloud.
+- **Knowledge-gap loop for staff.** A question gets logged as a gap when retrieval is weak, the model says the handbook doesn't cover it, or a user taps 👎. Gaps are grouped with similar questions on `/admin`. Staff can type an answer or upload a PDF/Markdown file; it's indexed immediately and cited in the next answer.
+- **Personas.** Applicant, student and parent each get a different tone, different starter questions and a retrieval boost toward their documents.
+- **Five languages, with voice.** Answers in English, Hindi, Kannada, Tamil or Telugu. Questions in those scripts, and romanized Hinglish ("hostel ka fees kitna hai"), are rewritten into an English search query first, so the English embedding model still finds the right passages. Questions can be spoken (Web Speech API) and answers read aloud.
 - **Plan board.** Pin answers, add deadlines from a timeline or turn a checklist into to-dos, then export dated items to your calendar (`.ics`).
+- **Provider fallback.** With both keys set, Gemini answers first. When it hits a rate limit or quota, Groq takes over: for 30 minutes after a daily quota, for 20 seconds after a per-minute limit. Free tiers are small; the Gemini key this was built with allowed 20 requests a day.
+
+## Design
+
+- **Palette.** A "garden city" palette, after Bengaluru:
+  - jacaranda purple as the accent
+  - laterite-brick terracotta, rain-tree green and marigold for illustration and highlights
+  - warm paper background, and an aubergine night for dark mode
+  The chart colours on the cost card are a separate palette, validated for colour-blind safety on both card surfaces.
+- **Light and dark.** Follows the system until you use the toggle in any header. The choice is remembered in the browser, and a small script in `<head>` applies it before the first paint, so there's no flash.
+- **Type.** *Instrument Serif* for headlines (with italics for emphasis), *Bricolage Grotesque* for the interface, *Geist Mono* for small labels and figures.
+- **Illustrations.** Drawn as SVG in code (`src/components/art`): the Northgate gate under a jacaranda, plus spot illustrations for sources, fees, languages, knowledge gaps and plans. They use a riso-print style, with fills printed slightly off their ink outlines. Colours come from theme tokens, so every illustration redraws itself for dark mode. Icons are Phosphor.
+- **Motion.**
+  - Smooth scrolling on the landing page with Lenis, driven by GSAP's ticker so scroll-linked animation stays in step. Anchor links glide to their section. Touch keeps native scrolling, and the chat keeps its own scroll panes.
+  - GSAP (`src/components/landing/motion.tsx` and the art components):
+    - the hero: falling petals, a breathing canopy, a lamp glow and a printed "receipt" that feeds out below the gate
+    - scroll depth: the sun sinks behind the tree and the hill settles as the hero leaves
+    - section headings rise line by line from behind a mask (SplitText)
+    - a reading-progress line under the nav
+    - illustrations that drift against the scroll, a connector that draws itself and step icons that land like stamps
+    - call-to-action buttons that lean toward the pointer
+  - Motion (Framer): card reveals, the sliding persona switch, tab underlines, drawer and toasts.
+  - React Bits: the split-text headline and counting stats (`src/components/reactbits`, vendored unmodified).
+  - Everything honours the reduced-motion setting: no smooth scrolling, no split text, nothing hidden.
 
 ## Quick start
 
@@ -27,29 +55,34 @@ Requires Node 22+.
 
 ```bash
 npm install
-cp .env.example .env.local      # then add GEMINI_API_KEY or GROQ_API_KEY
+cp .env.example .env.local      # then add GEMINI_API_KEY and/or GROQ_API_KEY
 npm run dev                     # seeds the database on first run, then http://localhost:3000
 ```
 
 - **Gemini key:** https://aistudio.google.com/apikey. **Groq key:** https://console.groq.com/keys.
-- If both keys are set, Gemini is used unless `LLM_PROVIDER=groq`.
-- Models can be overridden in `.env.local`. Defaults: `gemini-3.5-flash` and `openai/gpt-oss-120b`.
+- With both keys set, Gemini is primary and Groq is the fallback. `LLM_PROVIDER=groq` (or `gemini`) pins one and turns the fallback off.
+- Default models:
+  - Gemini: `gemini-3.5-flash`, with `gemini-3.5-flash-lite` for query rewriting
+  - Groq: `openai/gpt-oss-120b`, with `openai/gpt-oss-20b` for query rewriting
+  All are overridable in `.env.local`.
 - The first run downloads the embedding model (`Xenova/bge-small-en-v1.5`, about 33 MB) into `.cache/models`.
 - Without a key, the app still loads, and search, embeddings and the staff dashboard work. Chat shows a message asking for a key.
-- Staff dashboard: http://localhost:3000/admin. Set `ADMIN_PASSCODE` in `.env.local` to protect it; it's open when unset.
+- Set `ADMIN_PASSCODE` in `.env.local` to protect `/admin`; it's open when unset.
 
 | Script | What it does |
 |---|---|
 | `npm run dev` | Dev server (webpack, see the Windows note below) |
 | `npm run seed` | Rebuild the knowledge base from `data/`. Add `-- --fresh` to also wipe query logs, gaps and plans |
+| `npm test` | Unit tests, including the chat route end to end with a scripted LLM |
+| `npm run test:e2e` | Browser tests in Chrome against a production build with its own database, using the real LLM |
 | `npm run eval` | Retrieval benchmark: keyword vs semantic vs hybrid. Needs no API key |
-| `npm test` | Unit tests plus an end-to-end test of `/api/chat` with a scripted LLM |
+| `npm run eval:answers` | Answer-quality benchmark against a running server (uses the real LLM) |
 | `npm run build` / `npm start` | Production build / server |
 
 ## How a question is answered
 
 ```
-question ──► rewrite to a standalone English query      (fast LLM; skipped for a first English turn)
+question ──► rewrite to a standalone English query    (follow-ups, Indic scripts, Hinglish; skipped for a plain first English turn)
          ──► FTS5 BM25 top 20  ┐
              sqlite-vec top 20 ┴─► weighted reciprocal rank fusion ─► persona boost ─► top 6 passages
          ──► log query; weak match → knowledge gap
@@ -61,6 +94,7 @@ question ──► rewrite to a standalone English query      (fast LLM; skipped
 - **Confidence.** Comes from the best cosine similarity: high ≥ 0.72, medium ≥ 0.64, otherwise low.
 - **Gap clustering.** Questions are reduced to their topic words ("swimming pool"), embedded, and grouped by online clustering (cosine ≥ 0.81). Comparing whole sentences didn't work: "Is there a swimming pool on campus?" scored closer to "Is there a gym on campus?" than to a rephrasing of the pool question.
 - **One source of truth for numbers.** The fee, scholarship, calendar, contact and document-checklist documents are generated from `data/structured/*.json`. The calculators read the same data, so cited text and card numbers can't disagree.
+- **Citations across models.** Gemini cites `[2]`; gpt-oss writes `【2】`. Both are normalised before linking.
 
 ## Retrieval evaluation
 
@@ -74,18 +108,42 @@ question ──► rewrite to a standalone English query      (fast LLM; skipped
 
 On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimming pool" still scores 0.73, because it sits close to the sports-facilities section. That is why there is a second gap signal: the model calls `flagKnowledgeGap` when the passages don't answer the question.
 
+## Testing
+
+- **Unit tests** (`npm test`, Vitest, 50 tests):
+  - chunker, calculators, retrieval fusion, gap clustering, calendar export and formatting (including the pre-written rupee figures the model is given)
+  - Hinglish detection, citation normalising and provider fallback
+  - the chat route end to end with a scripted model
+- **Browser tests** (`npm run test:e2e`, Playwright in the installed Chrome). They run against a production build with a freshly seeded database, using the real LLM:
+  - **API contracts**
+  - **Chat:**
+    - a cost question checked down to the Rs 10,99,000 total
+    - citations that jump to their passage
+    - pinning and `.ics` export
+    - eligibility, a follow-up with context, Hindi and Hinglish
+    - deep links from the landing page
+  - **Knowledge-gap loop:** an unanswerable question is flagged, a staff member answers it on `/admin`, and the same question is then answered from the new FAQ.
+  - **Admin:** document upload and delete
+  - **Phone layout**
+  - **Light and dark captures:** no console errors and no sideways scrolling. Screenshots land in `e2e-screens/`.
+- **Answer quality** (`npm run eval:answers`, needs the dev server running): 16 questions, each scored on four things — it called the right tool, it gave the key facts, its citations point at real passages, and it stayed grounded (or flagged a gap). The script uses its own session and deletes its rows from the database afterwards.
+  - **Last run:** the free quotas ran out part-way (Gemini's free tier allows 20 requests a day), so 10 of the 16 questions came back with the quota message instead of an answer.
+  - **The 6 that were answered:** 5 passed. Tool choice was 5/5, key facts 2/3, citations 3/3 and grounding 5/6. Median answer time was 25.7 s, on the Groq fallback.
+  - **The failure was worth finding.** One cost answer wrote the total as Rs 1,09,90,000 instead of Rs 10,99,000: the model regrouped a raw integer the Indian way and slipped a digit. The calculators now hand the model every rupee figure already written out ("Rs 10,99,000 (Rs 10.99 lakh)") through the tool's `toModelOutput`, and the prompt says to copy them exactly. The card still gets the raw numbers. This fix hasn't yet been re-run against a live model.
+
 ## Project layout
 
 ```
 data/corpus/          14 handwritten handbook documents (Markdown + frontmatter)
 data/structured/      programmes, cutoffs, fees, hostel, scholarships, dates, contacts (JSON)
 data/college.db       generated SQLite database (gitignored)
-scripts/              seed, ensure-db (predev), eval-retrieval + eval-set.json
+scripts/              seed, ensure-db (predev), eval-retrieval + eval-set.json, eval-answers
 src/lib/              db + schema, embeddings, chunker, ingest, retrieval, calculators, tools,
-                      prompts, gaps, plan, ics, llm provider selection
-src/app/api/          chat, status, feedback, plan (+ ics), admin/{login,documents,gaps,stats}
-src/components/       chat workspace, answer cards, evidence panel, plan board, admin dashboard
-tests/                chunker, calculators, retrieval, gaps/ics/format, chat route (end to end)
+                      prompts, gaps, plan, ics, language detection, citations, LLM providers + fallback
+src/app/              landing (/), chat (/chat), admin (/admin), api/*
+src/components/       landing, chat workspace, answer cards, sources panel, plan board, admin,
+                      art (SVG illustrations), reactbits (vendored)
+tests/                unit tests        e2e/      Playwright browser tests
 ```
 
 To use a real college, replace the files in `data/corpus` and `data/structured` (same shapes), rename it in `src/lib/college.ts`, and run `npm run seed -- --fresh`.
@@ -98,4 +156,6 @@ On a healthy drive, `npm run dev:turbo` uses Turbopack. Tailwind runs through Po
 
 ## Stack
 
-Next.js 16 (App Router), React 19, Tailwind CSS 4, Vercel AI SDK 7 (`@ai-sdk/google`, `@ai-sdk/groq`), better-sqlite3, sqlite-vec, SQLite FTS5, @huggingface/transformers, unpdf, Vitest.
+Next.js 16 (App Router), React 19, Tailwind CSS 4, Vercel AI SDK 7 (`@ai-sdk/google`, `@ai-sdk/groq`), better-sqlite3, sqlite-vec, SQLite FTS5, @huggingface/transformers, unpdf, GSAP, Lenis, Motion, React Bits, Phosphor Icons, Vitest, Playwright.
+
+React Bits components are © David Haz, MIT + Commons Clause.

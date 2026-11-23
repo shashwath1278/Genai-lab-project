@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, CircleHelp, type LucideIcon } from "lucide-react";
+import { Warning, CheckCircle, Question, type Icon } from "@phosphor-icons/react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import type { Confidence } from "@/lib/retrieval";
 
@@ -11,7 +11,7 @@ export function cx(...classes: (string | false | null | undefined)[]) {
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost";
   size?: "sm" | "md";
-  icon?: LucideIcon;
+  icon?: Icon;
 };
 
 export function Button({ variant = "secondary", size = "md", icon: Icon, className, children, ...rest }: ButtonProps) {
@@ -39,7 +39,7 @@ export function IconButton({
   active,
   className,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; icon: LucideIcon; active?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; icon: Icon; active?: boolean }) {
   return (
     <button
       {...rest}
@@ -65,7 +65,7 @@ export function CardFrame({
   children,
   className,
 }: {
-  icon: LucideIcon;
+  icon: Icon;
   eyebrow?: string;
   title: ReactNode;
   actions?: ReactNode;
@@ -73,10 +73,10 @@ export function CardFrame({
   className?: string;
 }) {
   return (
-    <section className={cx("rise my-3 overflow-hidden rounded-xl border border-line bg-surface shadow-card", className)}>
+    <section className={cx("rise my-3 overflow-hidden rounded-2xl border border-line bg-surface shadow-card", className)}>
       <header className="flex items-center gap-3 border-b border-line px-4 py-2.5">
-        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-text">
-          <Icon size={15} aria-hidden />
+        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-xl border-[1.5px] border-ink bg-accent-soft text-ink shadow-[2px_2px_0_0_var(--ink)]">
+          <Icon size={16} weight="duotone" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
           {eyebrow && <p className="text-[11.5px] text-muted">{eyebrow}</p>}
@@ -89,10 +89,10 @@ export function CardFrame({
   );
 }
 
-export const CONFIDENCE: Record<Confidence, { label: string; icon: LucideIcon; text: string }> = {
-  high: { label: "Strong match", icon: CheckCircle2, text: "text-good-text" },
-  medium: { label: "Partial match", icon: AlertTriangle, text: "text-warning-text" },
-  low: { label: "Weak match", icon: CircleHelp, text: "text-critical-text" },
+export const CONFIDENCE: Record<Confidence, { label: string; icon: Icon; text: string }> = {
+  high: { label: "Strong match", icon: CheckCircle, text: "text-good-text" },
+  medium: { label: "Partial match", icon: Warning, text: "text-warning-text" },
+  low: { label: "Weak match", icon: Question, text: "text-critical-text" },
 };
 
 /** Status color always paired with an icon and a label. */
