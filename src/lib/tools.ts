@@ -14,6 +14,7 @@ import { planCampusRoute } from "./campus-map";
 import type { CollegeData } from "./college-data";
 import { moneyForModel } from "./format";
 import { recordGap } from "./gaps";
+import { noteFact } from "./memory";
 import { searchOfficialWeb, webSearchEnabled } from "./websearch";
 
 // Each tool's output renders as a card in the chat (see components/cards).
@@ -34,7 +35,20 @@ function safe<T>(fn: () => T): T | { error: string } {
   }
 }
 
-export function createTools({ data, queryId, question, today }: { data: CollegeData; queryId: number; question: string; today: string }) {
+export function createTools({
+  data,
+  queryId,
+  question,
+  today,
+  onRemember,
+}: {
+  data: CollegeData;
+  queryId: number;
+  question: string;
+  today: string;
+  /** Set when memory is on: saves a fact and returns whether it was new. */
+  onRemember?: (fact: NonNullable<ReturnType<typeof noteFact>>) => boolean;
+}) {
   const programHelp = `Programme code, one of: ${data.programs.map((p) => `${p.code} (${p.name})`).join(", ")}.`;
   let webResults = 0; // W-numbers stay unique across several searches in one answer
 
@@ -68,7 +82,24 @@ export function createTools({ data, queryId, question, today }: { data: CollegeD
     }),
   };
 
+  const memory = {
+    remember: tool({
+      description:
+        "Save a lasting fact the user told you about themselves that will help in later chats: where they live or board the bus, diet, the programme they've decided on, interests, constraints. Not for questions, one-off details or anything sensitive (health, religion, names, phone numbers, ID numbers). Call it at most once per answer.",
+      inputSchema: z.object({
+        label: z.string().describe("Short label, e.g. 'Home area' or 'Diet'."),
+        value: z.string().describe("The fact, e.g. 'Whitefield, Bengaluru' or 'Vegetarian'."),
+      }),
+      execute: async ({ label, value }) => {
+        const fact = noteFact(label, value);
+        if (!fact || !onRemember) return { saved: false };
+        return { saved: onRemember(fact), label: fact.label, value: fact.value };
+      },
+    }),
+  };
+
   return {
+    ...(onRemember ? memory : ({} as Partial<typeof memory>)),
     ...(webSearchEnabled() ? web : ({} as Partial<typeof web>)),
     checkEligibility: tool({
       description:

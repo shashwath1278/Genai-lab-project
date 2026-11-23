@@ -30,6 +30,12 @@ Everything except the LLM call runs on your machine. Embeddings are computed loc
   - **Notice or circular:** its dates go into My Plan in one tap.
 
   Photos are shrunk in the browser (longest side 1,600 px) and read by a vision model: Groq's `qwen/qwen3.8-27b` first, then Gemini. Text PDFs are read as text. Files are never stored, the reader is told to leave out names and ID numbers, and text inside a document is treated as data, not instructions.
+- **Memory and chat history, kept locally.** The assistant remembers details about you across chats, in the same SQLite file, per browser:
+  - **What it remembers:** programme, exam and rank, aggregate, category, hostel, mess, bus zone, scholarship, shortlists.
+  - **How:** mostly for free, from the inputs of tools it already called. An eligibility check knows your programme, rank and marks; a cost estimate knows your hostel and bus zone; a marks card gives your PCM aggregate. For other lasting facts you mention ("I live in Whitefield"), it can call a `remember` tool. No extra model calls are made just to remember.
+  - **In use:** a new chat greets you with what it remembers, and the model uses those details instead of asking again ("using your KCET rank of 12,000 from earlier"). Answers that taught it something show "Memory updated".
+  - **Your control:** the Memory tab lists every fact with where it came from. You can delete any of them, forget everything, or switch memory off.
+  - **History:** conversations are saved automatically and can be reopened from the same tab, with attachments kept by name only.
 - **Campus map with walking directions.** "Where is the Examination Section?" brings up a hand-drawn campus map in the site's style, zoomed to the route, plus turn-by-turn steps ("At Jacaranda Circle, turn left onto Central Walk…"). Routes come from Dijkstra over a walkway graph, not from the LLM. The same data generates a "Campus Map and Directions" document, so text answers and the map agree.
 - **Official-site web search (optional).** Northgate is fictional, but the world around it isn't: KCET and COMEDK schedules, government scholarships, certificates. With a Tavily key set, the assistant can search, limited to an allowlist of official domains (`gov.in`, `nic.in`, NTA, COMEDK, AICTE, UGC…). Results are filtered again on our side and shown on a separate "Beyond the handbook" card with `[W1]` citations. The model may never use them for Northgate's own facts, and questions answered this way aren't filed as handbook gaps.
 
@@ -125,10 +131,11 @@ On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimm
 
 ## Testing
 
-- **Unit tests** (`npm test`, Vitest, 103 tests):
+- **Unit tests** (`npm test`, Vitest, 129 tests):
   - chunker, calculators, retrieval fusion, gap clustering, calendar export and formatting (including the pre-written rupee figures the model is given)
-  - campus routing and place matching, the official-domain allowlist, reading parsing, the PCM aggregate and the fee-receipt audit
-  - the chat route with scripted models: map directions reach the model without the geometry, an attached receipt is read and audited and the image never reaches the answering model, and web-answered questions aren't filed as gaps
+  - campus routing and place matching, the official-domain allowlist, snippet cleaning, site names for logos, reading parsing, the PCM aggregate and the fee-receipt audit
+  - memory: facts from tool inputs and readings, the store (changes only, capped notes, per-browser, off switch) and chat history (attachments by name, no cross-browser access)
+  - the chat route with scripted models: map directions reach the model without the geometry, an attached receipt is read and audited and the image never reaches the answering model, web-answered questions aren't filed as gaps, and details remembered in one chat reach the model in the next
   - Hinglish detection, citation normalising and provider fallback
   - the chat route end to end with a scripted model
 - **Browser tests** (`npm run test:e2e`, Playwright in the installed Chrome). They run against a production build with a freshly seeded database, using the real LLM:
@@ -140,7 +147,7 @@ On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimm
     - eligibility, a follow-up with context, Hindi and Hinglish
     - deep links from the landing page
   - **Knowledge-gap loop:** an unanswerable question is flagged, a staff member answers it on `/admin`, and the same question is then answered from the new FAQ.
-  - **New features:** the campus map for an office, a fee-receipt photo checked line by line (`e2e/fixtures/fee-receipt.png`, a made-up receipt with one overcharge and a wrong total), and official-site search (skipped without a Tavily key).
+  - **New features:** the campus map for an office, a fee-receipt photo checked line by line (`e2e/fixtures/fee-receipt.png`, a made-up receipt with one overcharge and a wrong total), official-site search (skipped without a Tavily key), and memory carrying into a new chat plus reopening a saved chat.
   - **Admin:** document upload and delete
   - **Phone layout**
   - **Light and dark captures:** no console errors and no sideways scrolling. Screenshots land in `e2e-screens/`.

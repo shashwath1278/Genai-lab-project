@@ -7,6 +7,7 @@ import type { CopilotMessage, EvidenceData } from "@/lib/chat-types";
 import type { WebResult } from "@/lib/websearch";
 import { BrandMark } from "../art/Brand";
 import { ReadingCards } from "../cards/ReadingCard";
+import { MemoryNote } from "../memory/MemoryPanel";
 import { isToolPart, ToolPartView } from "../cards/ToolPartView";
 import { usePlan } from "../plan/PlanContext";
 import { SiteStack } from "../SiteLogo";
@@ -58,6 +59,7 @@ export function AssistantMessage({
   onFeedback,
   onSpeak,
   onFollowUp,
+  onOpenMemory,
 }: {
   message: CopilotMessage;
   streaming: boolean;
@@ -70,6 +72,7 @@ export function AssistantMessage({
   onFeedback: (value: "up" | "down") => void;
   onSpeak: () => void;
   onFollowUp: (text: string) => void;
+  onOpenMemory: () => void;
 }) {
   const { add } = usePlan();
   const [copied, setCopied] = useState(false);
@@ -111,6 +114,7 @@ export function AssistantMessage({
           }
           if (isToolPart(part)) return <ToolPartView key={i} part={part} />;
           if (part.type === "data-reading") return <ReadingCards key={i} data={part.data} onAsk={onFollowUp} />;
+          if (part.type === "data-memory") return <MemoryNote key={i} saved={part.data.saved} onManage={onOpenMemory} />;
           return null;
         })}
 

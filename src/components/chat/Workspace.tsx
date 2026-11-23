@@ -2,13 +2,14 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type FileUIPart } from "ai";
-import { ArrowCounterClockwise, BookOpen, ClipboardText, FilePdf, NotePencil, Warning, X } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, BookOpen, Brain, ClipboardText, FilePdf, ImageSquare, NotePencil, Warning, X } from "@phosphor-icons/react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { CopilotMessage } from "@/lib/chat-types";
 import { getLanguage, LANGUAGES, PERSONAS, type LanguageId, type PersonaId } from "@/lib/college";
 import { EvidencePanel } from "../evidence/EvidencePanel";
+import { MemoryPanel, useMemory } from "../memory/MemoryPanel";
 import { PlanBoard } from "../plan/PlanBoard";
 import { PlanProvider, usePlan } from "../plan/PlanContext";
 import { Button, cx } from "../ui";
@@ -64,6 +65,10 @@ function useStoredChoice<T extends string>(key: string, fallback: T, valid: read
 const PERSONA_IDS = PERSONAS.map((p) => p.id);
 const LANGUAGE_IDS = LANGUAGES.map((l) => l.id);
 
+export type PanelTab = "evidence" | "plan" | "memory";
+
+const newChatId = () => `chat-${crypto.randomUUID()}`;
+
 function readError(error: Error | undefined): string | null {
   if (!error) return null;
   try {
@@ -86,13 +91,16 @@ export default function Workspace() {
 function WorkspaceInner() {
   const [persona, setPersona] = useStoredChoice<PersonaId>("ng-persona", "prospective", PERSONA_IDS);
   const [language, setLanguage] = useStoredChoice<LanguageId>("ng-language", "en", LANGUAGE_IDS);
-  const { messages, sendMessage, status, error, stop, regenerate, clearError, setMessages } = useChat<CopilotMessage>({ transport });
+  // Each conversation has an id; switching it (new chat, or one from history) gives useChat a fresh thread.
+  const [thread, setThread] = useState<{ id: string; messages: CopilotMessage[] }>(() => ({ id: newChatId(), messages: [] }));
+  const { messages, sendMessage, status, error, stop, regenerate, clearError } = useChat<CopilotMessage>({ id: thread.id, messages: thread.messages, transport });
+  const memory = useMemory();
   const plan = usePlan();
 
   const [input, setInput] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [focus, setFocus] = useState<{ n: number; tick: number } | null>(null);
-  const [tab, setTab] = useState<"evidence" | "plan">("evidence");
+  const [tab, setTab] = useState<PanelTab>("evidence");
   const [drawer, setDrawer] = useState(false);
   const [feedback, setFeedback] = useState<Record<number, "up" | "down">>({});
   const [speakingId, setSpeakingId] = useState<string | null>(null);
@@ -102,14 +110,16 @@ function WorkspaceInner() {
 
   const busy = status === "submitted" || status === "streaming";
 
-  // Refresh status (LLM, open-gap count) on load and after each answer.
+  // Refresh status (LLM, open-gap count), memory and saved chats on load and after each answer.
+  const refreshMemory = memory.refresh;
   useEffect(() => {
     if (busy) return;
     fetch("/api/status")
       .then((r) => r.json())
       .then(setInfo)
       .catch(() => {});
-  }, [busy]);
+    refreshMemory();
+  }, [busy, refreshMemory]);
 
   // Follow the stream if the reader is already near the bottom.
   useEffect(() => {
@@ -167,7 +177,7 @@ function WorkspaceInner() {
     });
   };
 
-  const openPanel = (next: "evidence" | "plan") => {
+  const openPanel = (next: PanelTab) => {
     setTab(next);
     if (!window.matchMedia("(min-width: 1024px)").matches) setDrawer(true);
   };
@@ -192,19 +202,43 @@ function WorkspaceInner() {
     if (speak(messageText(m), getLanguage(language).speech, () => setSpeakingId((id) => (id === m.id ? null : id)))) setSpeakingId(m.id);
   };
 
-  const newChat = () => {
+  const resetView = () => {
     stop();
     stopSpeaking();
-    setMessages([]);
+    setSpeakingId(null);
     setSelectedId(null);
     setFocus(null);
     clearError();
   };
 
+  const newChat = () => {
+    resetView();
+    setThread({ id: newChatId(), messages: [] });
+  };
+
+  // Reopen a saved conversation and carry on from where it stopped.
+  const openChat = (id: string) => {
+    if (id === thread.id) return setDrawer(false);
+    fetch(`/api/chats?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(({ chat }: { chat: { id: string; messages: CopilotMessage[] } }) => {
+        resetView();
+        setThread({ id: chat.id, messages: chat.messages });
+        setDrawer(false);
+      })
+      .catch(() => memory.refresh());
+  };
+
   const errorText = readError(error);
   const panel = (id: string) => (
-    <SidePanel id={id} tab={tab} onTab={setTab} planCount={plan.items.filter((i) => !i.done).length}>
-      {tab === "evidence" ? <EvidencePanel evidence={evidence} web={selected ? getWebResults(selected) : []} focusN={focus?.n ?? null} focusTick={focus?.tick ?? 0} /> : <PlanBoard />}
+    <SidePanel id={id} tab={tab} onTab={setTab} planCount={plan.items.filter((i) => !i.done).length} memoryCount={memory.enabled ? memory.facts.length : 0}>
+      {tab === "evidence" ? (
+        <EvidencePanel evidence={evidence} web={selected ? getWebResults(selected) : []} focusN={focus?.n ?? null} focusTick={focus?.tick ?? 0} />
+      ) : tab === "plan" ? (
+        <PlanBoard />
+      ) : (
+        <MemoryPanel memory={memory} currentChatId={thread.id} onOpenChat={openChat} />
+      )}
     </SidePanel>
   );
 
@@ -234,7 +268,14 @@ function WorkspaceInner() {
           <div ref={scroller} className="scrollbar-thin flex-1 overflow-y-auto">
             <div className="mx-auto max-w-3xl px-4 pb-6 pt-4 sm:px-6">
               {messages.length === 0 ? (
-                <EmptyState persona={persona} onAsk={(q) => ask(q)} onTemplate={applyTemplate} webSearch={!!info?.webSearch} />
+                <EmptyState
+                  persona={persona}
+                  onAsk={(q) => ask(q)}
+                  onTemplate={applyTemplate}
+                  webSearch={!!info?.webSearch}
+                  remembered={memory.enabled ? memory.facts : []}
+                  onOpenMemory={() => openPanel("memory")}
+                />
               ) : (
                 <div className="space-y-6 pt-2">
                   {messages.map((m, i) =>
@@ -273,6 +314,7 @@ function WorkspaceInner() {
                         }}
                         onSpeak={() => toggleSpeak(m)}
                         onFollowUp={ask}
+                        onOpenMemory={() => openPanel("memory")}
                       />
                     ),
                   )}
@@ -321,7 +363,7 @@ function WorkspaceInner() {
             className="fixed inset-0 z-40 lg:hidden"
             role="dialog"
             aria-modal="true"
-            aria-label={tab === "evidence" ? "Sources" : "Plan"}
+            aria-label={tab === "evidence" ? "Sources" : tab === "plan" ? "Plan" : "Memory"}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -371,7 +413,13 @@ function UserAttachments({ message }: { message: CopilotMessage }) {
   return (
     <div className="flex flex-wrap justify-end gap-1.5">
       {files.map((f, i) =>
-        f.mediaType.startsWith("image/") ? (
+        !f.url ? (
+          // A saved chat keeps the file's name, not the file.
+          <span key={i} className="inline-flex items-center gap-1.5 rounded-xl border border-dashed border-line-strong bg-surface px-3 py-2 text-[12.5px] text-muted">
+            {f.mediaType.startsWith("image/") ? <ImageSquare size={15} aria-hidden /> : <FilePdf size={15} aria-hidden />}
+            {f.filename ?? "Attachment"} <span className="text-[11.5px]">(not kept)</span>
+          </span>
+        ) : f.mediaType.startsWith("image/") ? (
           // eslint-disable-next-line @next/next/no-img-element -- a local data URL the user just attached
           <img key={i} src={f.url} alt={f.filename ?? "Attached photo"} className="max-h-44 max-w-56 rounded-2xl border border-line object-cover shadow-card" />
         ) : (
@@ -390,17 +438,20 @@ function SidePanel({
   tab,
   onTab,
   planCount,
+  memoryCount,
   children,
 }: {
   id: string;
-  tab: "evidence" | "plan";
-  onTab: (t: "evidence" | "plan") => void;
+  tab: PanelTab;
+  onTab: (t: PanelTab) => void;
   planCount: number;
+  memoryCount: number;
   children: ReactNode;
 }) {
-  const tabs = [
-    { id: "evidence" as const, label: "Sources", icon: BookOpen },
-    { id: "plan" as const, label: "Plan", icon: ClipboardText, count: planCount },
+  const tabs: { id: PanelTab; label: string; icon: typeof BookOpen; count?: number }[] = [
+    { id: "evidence", label: "Sources", icon: BookOpen },
+    { id: "plan", label: "Plan", icon: ClipboardText, count: planCount },
+    { id: "memory", label: "Memory", icon: Brain, count: memoryCount },
   ];
   return (
     <div className="flex min-h-0 flex-1 flex-col">

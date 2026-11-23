@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowUpRight, CalendarBlank, Columns, GraduationCap, Paperclip, Wallet, type Icon } from "@phosphor-icons/react";
+import { ArrowUpRight, Brain, CalendarBlank, Columns, GraduationCap, Paperclip, Wallet, type Icon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import { getPersona, type PersonaId } from "@/lib/college";
 import { SprigSpot } from "../art/spots";
+import { factText } from "../memory/MemoryPanel";
 
 const TITLE: Record<PersonaId, [string, string]> = {
   prospective: ["Find your way", "into Northgate."],
@@ -29,11 +30,15 @@ export function EmptyState({
   onAsk,
   onTemplate,
   webSearch = false,
+  remembered = [],
+  onOpenMemory,
 }: {
   persona: PersonaId;
   onAsk: (q: string) => void;
   onTemplate: (t: string) => void;
   webSearch?: boolean;
+  remembered?: { id: number; label: string; value: string }[];
+  onOpenMemory?: () => void;
 }) {
   const p = getPersona(persona);
   const [plain, accent] = TITLE[persona];
@@ -54,6 +59,23 @@ export function EmptyState({
       <motion.h1 variants={item} className="mt-3 font-display text-[44px] leading-[0.98] tracking-tight text-ink sm:text-[58px]">
         {plain} <em className="text-accent-text">{accent}</em>
       </motion.h1>
+
+      {remembered.length > 0 && (
+        <motion.div variants={item} className="mt-5 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-2">
+          <Brain size={15} weight="duotone" className="text-accent-text" aria-hidden />
+          <span>Welcome back. I remember</span>
+          {remembered.slice(0, 4).map((f) => (
+            <span key={f.id} title={f.label} className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[12.5px] text-ink">
+              {factText(f)}
+            </span>
+          ))}
+          {onOpenMemory && (
+            <button type="button" onClick={onOpenMemory} className="text-[12.5px] font-medium text-accent-text hover:underline">
+              {remembered.length > 4 ? `+${remembered.length - 4} more` : "Manage"}
+            </button>
+          )}
+        </motion.div>
+      )}
 
       <motion.div variants={item} className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {SHORTCUTS.map((s) => (

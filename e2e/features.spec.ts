@@ -48,3 +48,30 @@ test("official-site search for things outside the handbook", async ({ page, requ
     expect(href).toMatch(/(^|\.)(gov\.in|nic\.in|nta\.ac\.in|comedk\.org|aicte-india\.org|ugc\.ac\.in|nirfindia\.org|iimcat\.ac\.in|aima\.in)$/);
   }
 });
+
+test("memory: details from one chat carry into the next, and chats can be reopened", async ({ page }) => {
+  await page.goto("/chat");
+  await ask(page, "Can I get AIML with a KCET rank of 12000 and 85% in PCM?");
+  await expect(lastAnswer(page)).toContainText("Memory updated");
+  await expect(lastAnswer(page)).toContainText("KCET rank 12,000");
+
+  // A new chat greets with what's remembered, and the Memory tab lists it.
+  await page.getByRole("button", { name: "New chat" }).click();
+  await expect(page.getByText("Welcome back. I remember")).toBeVisible();
+  await page.getByRole("tab", { name: /Memory/ }).click();
+  const panel = page.locator("aside");
+  await expect(panel).toContainText("Entrance exam result");
+  await expect(panel).toContainText("KCET rank 12,000");
+
+  // History survives a reload and reopens the conversation.
+  await page.reload();
+  await page.getByRole("tab", { name: /Memory/ }).click();
+  await panel.getByRole("button", { name: /Can I get AIML/ }).click();
+  await expect(page.locator("main")).toContainText("Can I get AIML with a KCET rank of 12000");
+  await expect(lastAnswer(page).locator("section").filter({ hasText: "AIML via KCET" })).toBeVisible();
+
+  // Forgetting works.
+  await panel.getByRole("button", { name: "Forget everything" }).click();
+  await panel.getByRole("button", { name: "Yes, forget" }).click();
+  await expect(panel).toContainText("Nothing yet");
+});

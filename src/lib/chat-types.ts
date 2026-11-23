@@ -1,4 +1,5 @@
 import type { InferUITools, UIMessage } from "ai";
+import type { MemoryUpdate } from "./memory";
 import type { ReadingData } from "./reading";
 import type { Confidence, Passage } from "./retrieval";
 import type { CopilotTools } from "./tools";
@@ -18,4 +19,4 @@ export type EvidenceData = {
 };
 
 export type CopilotUITools = InferUITools<CopilotTools>;
-export type CopilotMessage = UIMessage<never, { evidence: EvidenceData; reading: ReadingData }, CopilotUITools>;
+export type CopilotMessage = UIMessage<never, { evidence: EvidenceData; reading: ReadingData; memory: MemoryUpdate }, CopilotUITools>;

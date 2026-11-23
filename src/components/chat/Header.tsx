@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, ClipboardText, SquaresFour, Translate } from "@phosphor-icons/react";
+import { BookOpen, Brain, ClipboardText, SquaresFour, Translate } from "@phosphor-icons/react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { LANGUAGES, PERSONAS, type LanguageId, type PersonaId } from "@/lib/college";
@@ -33,7 +33,7 @@ export function Header({
   onLanguage: (l: LanguageId) => void;
   status: Status | null;
   planCount: number;
-  onOpenPanel: (tab: "evidence" | "plan") => void;
+  onOpenPanel: (tab: "evidence" | "plan" | "memory") => void;
 }) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-3 border-b border-line bg-bg/85 px-3 backdrop-blur sm:px-5">
@@ -86,6 +86,7 @@ export function Header({
 
         <div className="flex items-center lg:hidden">
           <IconButton label="Sources" icon={BookOpen} onClick={() => onOpenPanel("evidence")} />
+          <IconButton label="Memory" icon={Brain} onClick={() => onOpenPanel("memory")} />
           <span className="relative">
             <IconButton label="Plan" icon={ClipboardText} onClick={() => onOpenPanel("plan")} />
             {planCount > 0 && (

@@ -9,7 +9,7 @@ export type DB = Database.Database;
 export const DB_PATH = process.env.COLLEGE_DB_PATH ?? path.join(process.cwd(), "data", "college.db");
 
 // Survive Next's dev hot reloads: one connection per process.
-const g = globalThis as unknown as { __collegeDb?: DB };
+const g = globalThis as unknown as { __collegeDb?: DB; __collegeDbSchema?: string };
 
 export function openDb(file = DB_PATH): DB {
   fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -23,6 +23,12 @@ export function openDb(file = DB_PATH): DB {
 
 export function getDb(): DB {
   g.__collegeDb ??= openDb();
+  // The connection outlives hot reloads; when the schema gains a table, add it
+  // (every statement is CREATE ... IF NOT EXISTS, so this is safe to repeat).
+  if (g.__collegeDbSchema !== SCHEMA) {
+    g.__collegeDb.exec(SCHEMA);
+    g.__collegeDbSchema = SCHEMA;
+  }
   return g.__collegeDb;
 }
 

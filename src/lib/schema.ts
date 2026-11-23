@@ -141,4 +141,29 @@ CREATE TABLE IF NOT EXISTS plan_items (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS plan_items_session ON plan_items(session_id);
+
+-- Memory: what the assistant remembers about a browser session, and its saved chats.
+CREATE TABLE IF NOT EXISTS memories (
+  id INTEGER PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  key TEXT NOT NULL,
+  label TEXT NOT NULL,
+  value TEXT NOT NULL,
+  source TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (session_id, key)
+);
+CREATE TABLE IF NOT EXISTS memory_settings (
+  session_id TEXT PRIMARY KEY,
+  enabled INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS chats (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  messages TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS chats_session ON chats(session_id, updated_at);
 `;

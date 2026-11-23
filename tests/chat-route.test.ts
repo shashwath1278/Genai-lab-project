@@ -227,6 +227,53 @@ describe("POST /api/chat", () => {
     }
   });
 
+  it("remembers the user's details from tool inputs and uses them in the next chat", async () => {
+    const memory = await import("../src/lib/memory");
+    memory.clearMemory("test-session");
+    script.push(toolCall("checkEligibility", { program: "AIML", exam: "KCET", rank: 12000, aggregatePercent: 85 }), text("You're likely to get AIML."));
+    const chunks = await chat([{ role: "user", text: "Can I get AIML with KCET rank 12000 and 85% PCM?" }], { id: "chat-memory-1" });
+    const update = chunks.find((c) => c.type === "data-memory")?.data as { saved: { label: string; value: string }[] };
+    expect(update.saved.map((s) => s.value)).toEqual(expect.arrayContaining(["AIML (Artificial Intelligence & Machine Learning)", "KCET rank 12,000", "85%"]));
+    // The memory note comes after the answer, and the stream still finishes.
+    const types = chunks.map((c) => c.type);
+    expect(types.indexOf("data-memory")).toBeGreaterThan(types.lastIndexOf("text-delta"));
+    expect(types.at(-1)).toBe("finish");
+
+    // A brand-new chat: the model is told what's remembered.
+    script.push(text("With your KCET rank of 12,000 from earlier, CSE is a stretch."));
+    await chat([{ role: "user", text: "What about CSE?" }], { id: "chat-memory-2" });
+    expect(prompts.at(-1)).toContain("WHAT YOU REMEMBER ABOUT THIS USER");
+    expect(prompts.at(-1)).toContain("Entrance exam result: KCET rank 12,000 (from eligibility check)");
+  });
+
+  it("saves each conversation for the history list", async () => {
+    const chats = await import("../src/lib/chats");
+    const saved = chats.getChat("test-session", "chat-memory-1")!;
+    expect(saved.title).toBe("Can I get AIML with KCET rank 12000 and 85% PCM?");
+    expect(saved.messages.map((m) => m.role)).toEqual(["user", "assistant"]);
+    expect(saved.messages[1].parts.some((p) => p.type === "tool-checkEligibility")).toBe(true);
+    expect(chats.listChats("test-session").map((c) => c.id)).toEqual(expect.arrayContaining(["chat-memory-1", "chat-memory-2"]));
+  });
+
+  it("saves the remember tool's notes, and does nothing when memory is off", async () => {
+    const memory = await import("../src/lib/memory");
+    script.push(toolCall("remember", { label: "Home area", value: "Whitefield" }), text("Noted."));
+    const chunks = await chat([{ role: "user", text: "I live in Whitefield, by the way." }]);
+    expect(chunks.find((c) => c.type === "data-memory")?.data).toEqual({ saved: [{ label: "Home area", value: "Whitefield" }] });
+
+    memory.setMemoryEnabled("test-session", false);
+    try {
+      script.push(toolCall("checkEligibility", { program: "ECE", exam: "KCET", rank: 30000 }), text("ok"));
+      const off = await chat([{ role: "user", text: "And ECE with rank 30000?" }]);
+      expect(off.some((c) => c.type === "data-memory")).toBe(false);
+      expect(prompts.at(-1)).not.toContain("WHAT YOU REMEMBER");
+      expect(prompts.at(-1)).not.toContain("MEMORY TOOL");
+      expect(memory.listMemory("test-session").find((f) => f.key === "result")?.value).toBe("KCET rank 12,000");
+    } finally {
+      memory.setMemoryEnabled("test-session", true);
+    }
+  });
+
   it("rejects requests without a user message", async () => {
     const res = await POST(new Request("http://test/api/chat", { method: "POST", body: JSON.stringify({ messages: [] }) }));
     expect(res.status).toBe(400);

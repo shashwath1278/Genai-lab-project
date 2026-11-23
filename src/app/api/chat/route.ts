@@ -12,6 +12,7 @@ import type { CopilotMessage, EvidenceData } from "@/lib/chat-types";
 import { getLanguage, getPersona } from "@/lib/college";
 import { getCollegeData } from "@/lib/data";
 import { todayIso } from "@/lib/format";
+import { CHAT_ID, saveChat, storableMessages } from "@/lib/chats";
 import { embedGapTopic, logQuery, recordGap, retractGap } from "@/lib/gaps";
 import { hasNonAscii, looksHinglish } from "@/lib/language";
 import { friendlyLlmError, getModels, getVisionModel } from "@/lib/llm";
@@ -19,6 +20,7 @@ import { buildInstructions, buildRewritePrompt, describeReadings } from "@/lib/p
 import { type Attachment, readAttachment, readingQuery, validateAttachments } from "@/lib/reader";
 import type { ReadingFile } from "@/lib/reading";
 import { retrieve } from "@/lib/retrieval";
+import { factsFromReadings, factsFromTools, listMemory, memoryEnabled, type NewFact, saveFacts } from "@/lib/memory";
 import { getSessionId } from "@/lib/session";
 import { createTools } from "@/lib/tools";
 import { webSearchEnabled } from "@/lib/websearch";
@@ -75,7 +77,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages?: CopilotMessage[]; persona?: string; language?: string };
+  let body: { id?: string; messages?: CopilotMessage[]; persona?: string; language?: string };
   try {
     body = await req.json();
   } catch {
@@ -92,6 +94,9 @@ export async function POST(req: Request) {
   if (fileError) return Response.json({ error: fileError }, { status: 400 });
 
   const sessionId = await getSessionId();
+  const chatId = typeof body.id === "string" && CHAT_ID.test(body.id) ? body.id : null;
+  const memoryOn = memoryEnabled(sessionId);
+  const remembered = memoryOn ? listMemory(sessionId) : [];
   const data = getCollegeData();
   const today = todayIso();
 
@@ -150,17 +155,34 @@ export async function POST(req: Request) {
     related: retrieval.related,
     persona,
   };
-  const tools = createTools({ data, queryId, question, today });
+  // Facts saved during this answer (by the remember tool, then from the other tools' inputs).
+  const memoryChanges: NewFact[] = [];
+  const tools = createTools({
+    data,
+    queryId,
+    question,
+    today,
+    onRemember: memoryOn
+      ? (fact) => {
+          const changed = saveFacts(sessionId, [fact]);
+          memoryChanges.push(...changed);
+          return changed.length > 0;
+        }
+      : undefined,
+  });
 
   // 3. Evidence first, then the streamed answer with tool cards.
   const stream = createUIMessageStream<CopilotMessage>({
+    // Chat history: the conversation is saved (attachments by name only) when the answer ends.
+    originalMessages: chatId ? storableMessages(body.messages ?? []) : undefined,
+    onFinish: chatId ? ({ messages: all }) => saveChat(sessionId, chatId, all) : undefined,
     execute: async ({ writer }) => {
       writer.write({ type: "start" });
       writer.write({ type: "data-evidence", id: `evidence-${queryId}`, data: evidence });
       if (readings.length) writer.write({ type: "data-reading", id: `reading-${queryId}`, data: { files: readings } });
       const result = streamText({
         model: models.main,
-        instructions: buildInstructions({ persona, language, passages: retrieval.passages, confidence: retrieval.confidence, data, today, webSearch: webSearchEnabled(), attachments: readings }),
+        instructions: buildInstructions({ persona, language, passages: retrieval.passages, confidence: retrieval.confidence, data, today, webSearch: webSearchEnabled(), attachments: readings, memory: remembered, canRemember: memoryOn }),
         messages: await convertToModelMessages(withoutFiles(messages), {
           tools,
           ignoreIncompleteToolCalls: true,
@@ -186,7 +208,21 @@ export async function POST(req: Request) {
       });
       // Errors inside the model stream (provider errors, tool failures) are
       // reported through this stream's own onError, not the outer one.
-      writer.merge(toUIMessageStream({ stream: result.stream, sendStart: false, sendReasoning: false, onError: reportError }));
+      writer.merge(toUIMessageStream({ stream: result.stream, sendStart: false, sendFinish: false, sendReasoning: false, onError: reportError }));
+
+      // After the answer: remember what this exchange said about the user. Free:
+      // the facts are the inputs of tools the model already called.
+      if (memoryOn) {
+        try {
+          const steps = await result.steps;
+          memoryChanges.push(...saveFacts(sessionId, [...factsFromReadings(readings), ...factsFromTools(steps.flatMap((s) => s.toolCalls), data)]));
+        } catch {
+          // The answer failed; there's nothing new to remember.
+        }
+        const saved = [...new Map(memoryChanges.map((f) => [f.key, { label: f.label, value: f.value }])).values()];
+        if (saved.length) writer.write({ type: "data-memory", id: `memory-${queryId}`, data: { saved } });
+      }
+      writer.write({ type: "finish" });
     },
     onError: reportError,
   });
