@@ -16,7 +16,7 @@ import { queryTerms, type Confidence } from "./retrieval";
 export const GAP_SIMILARITY = 0.81;
 
 const GENERIC = new Set(
-  "campus college northgate ngit institute student students use allowed available bring run like programme program course".split(" "),
+  "campus college northgate ngit msrit ramaiah institute student students use allowed available bring run like programme program course".split(" "),
 );
 
 export function gapTopic(question: string): string {
@@ -161,7 +161,7 @@ export function setGapStatus(clusterId: number, status: "resolved" | "dismissed"
 
 /**
  * Undo the automatic low-confidence gap for a question that was about the
- * world outside Northgate and was answered from the web (KCET dates,
+ * world outside the college and was answered from the web (KCET dates,
  * a government scholarship). The handbook isn't meant to cover those, so they
  * shouldn't sit on the staff gap list. Gaps the model flagged stay.
  */

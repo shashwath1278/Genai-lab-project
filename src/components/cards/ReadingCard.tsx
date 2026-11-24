@@ -185,9 +185,9 @@ function ReceiptCheck({ audit }: { audit: FeeAudit }) {
   const off = audit.lines.filter((l) => l.status === "higher" || l.status === "lower").length + (audit.totalMatches === false ? 1 : 0);
   const banner =
     audit.verdict === "all-match"
-      ? { icon: CheckCircle, text: "Every line matches Northgate's official fees.", cls: "bg-leaf-soft text-ink" }
+      ? { icon: CheckCircle, text: "Every line matches the published fees.", cls: "bg-leaf-soft text-ink" }
       : audit.verdict === "mismatch"
-        ? { icon: WarningCircle, text: `${off} ${off === 1 ? "thing doesn't" : "things don't"} match the official fees. Ask the Accounts Section (Admin Block, A-110) before paying more.`, cls: "bg-laterite-soft text-ink" }
+        ? { icon: WarningCircle, text: `${off} ${off === 1 ? "thing doesn't" : "things don't"} match the official fees. Ask the college's accounts office before paying more.`, cls: "bg-laterite-soft text-ink" }
         : { icon: Info, text: "Some lines couldn't be checked against the official fees.", cls: "bg-surface-2 text-ink-2" };
   return (
     <div className="mt-3">

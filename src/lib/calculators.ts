@@ -1,4 +1,5 @@
 import type { Category, CollegeData, Contact, Program, Route } from "./college-data";
+import { COLLEGE } from "./college";
 import { daysBetween, formatINR, formatNumber } from "./format";
 
 // Pure functions over CollegeData. The LLM calls these through tools so that
@@ -18,6 +19,18 @@ const PROGRAM_ALIASES: Record<string, string[]> = {
   MBA: ["MANAGEMENT", "BUSINESSADMINISTRATION"],
   MCA: ["COMPUTERAPPLICATIONS"],
   "MTECH-CSE": ["MTECH", "MTECHCSE", "MTECHCS"],
+  "CSE-AIML": ["CSEAIML", "CSAIML", "CSEAI", "CSEARTIFICIALINTELLIGENCE"],
+  "CSE-CY": ["CSECY", "CYBERSECURITY", "CSECYBERSECURITY", "CSCYBERSECURITY"],
+  AIDS: ["AIANDDS", "AIDS", "DATASCIENCE", "AIDATASCIENCE"],
+  EEE: ["EE", "ELECTRICAL", "ELECTRICALANDELECTRONICS"],
+  EIE: ["EI", "INSTRUMENTATION"],
+  ETE: ["TC", "TELECOM", "TELECOMMUNICATION"],
+  AE: ["AEROSPACE", "AERO"],
+  BT: ["BIOTECH"],
+  CH: ["CHEMICAL"],
+  IEM: ["IM", "INDUSTRIAL"],
+  MDE: ["ML", "MEDICALELECTRONICS"],
+  BARCH: ["ARCHITECTURE"],
 };
 
 export function findProgram(data: CollegeData, input: string): Program {
@@ -51,7 +64,8 @@ function findRoute(program: Program, exam: string | undefined): Route | undefine
 }
 
 function cutoffText(type: Route["cutoffType"], value: number | null): string {
-  if (value == null || type === "none") return "no entrance cutoff";
+  if (type === "none") return "no entrance cutoff";
+  if (value == null) return "cutoff not published";
   if (type === "rank") return `rank ${formatNumber(value)}`;
   if (type === "percentile") return `${value} percentile`;
   return `score ${value}`;
@@ -93,11 +107,18 @@ function cutoffCheck(
   category: Category,
   input: Pick<EligibilityInput, "rank" | "percentile" | "score">,
 ): { status: CheckStatus; detail: string; forCategory: number | null } {
-  if (route.cutoffType === "none" || route.cutoff == null) {
-    return { status: "pass", detail: "No entrance cutoff", forCategory: null };
+  if (route.cutoffType === "none") return { status: "pass", detail: "No entrance cutoff", forCategory: null };
+  if (route.cutoff == null) return { status: "unknown", detail: "Cutoff not published", forCategory: null };
+  // A category whose cutoffs aren't known: meeting the General Merit one is enough, missing it decides nothing.
+  if ((route.cutoffType === "rank" ? data.categoryRankMultiplier : data.categoryPercentileRelaxation)[category] == null) {
+    const gm = formatNumber(route.cutoff);
+    const within = route.cutoffType === "rank" ? input.rank != null && input.rank <= route.cutoff : (input.percentile ?? -1) >= route.cutoff;
+    return within
+      ? { status: "pass", detail: `Within the GM closing ${gm}`, forCategory: null }
+      : { status: "unknown", detail: `${category} cutoff not published (GM closing ${gm})`, forCategory: null };
   }
   if (route.cutoffType === "rank") {
-    const limit = Math.round(route.cutoff * data.categoryRankMultiplier[category]);
+    const limit = Math.round(route.cutoff * (data.categoryRankMultiplier[category] ?? 1));
     const closing = `closing ${formatNumber(limit)}`;
     if (input.rank == null) return { status: "unknown", detail: `Closing rank ${formatNumber(limit)}`, forCategory: limit };
     if (input.rank <= limit) return { status: "pass", detail: `${formatNumber(input.rank)} vs ${closing}`, forCategory: limit };
@@ -105,7 +126,7 @@ function cutoffCheck(
     return { status: "fail", detail: `${formatNumber(input.rank)} vs ${closing}`, forCategory: limit };
   }
   const value = route.cutoffType === "percentile" ? input.percentile : input.score;
-  const relax = route.cutoffType === "percentile" ? data.categoryPercentileRelaxation[category] : 0;
+  const relax = route.cutoffType === "percentile" ? (data.categoryPercentileRelaxation[category] ?? 0) : 0;
   const limit = route.cutoff - relax;
   const margin = route.cutoffType === "percentile" ? 3 : route.cutoff * 0.1;
   if (value == null) return { status: "unknown", detail: `Cutoff ${limit}`, forCategory: limit };
@@ -125,7 +146,7 @@ export function checkEligibility(data: CollegeData, input: EligibilityInput): El
     exam,
     category,
     acceptedExams: program.routes.map((r) => r.exam),
-    note: `${data.cutoffYear} ${category} cutoffs; they change every year.`,
+    note: route?.cutoffLabel ? `${route.cutoffLabel} closing ranks (General Merit); they change every year.` : `${data.cutoffYear} ${category} cutoffs; they change every year.`,
   };
 
   const minAgg = category === "GM" ? program.minAggregate : program.reservedMinAggregate;
@@ -177,7 +198,10 @@ export function checkEligibility(data: CollegeData, input: EligibilityInput): El
     "not-eligible": `Below the minimum aggregate for ${program.code}`,
     unlikely: `${program.code} via ${route.exam} looks unlikely`,
     borderline: `${program.code} via ${route.exam} is borderline`,
-    "needs-info": `Need your ${route.exam} ${route.cutoffType === "rank" ? "rank" : route.cutoffType} to decide`,
+    "needs-info":
+      input.rank != null || input.percentile != null || input.score != null
+        ? `No published ${category === "GM" ? "" : `${category} `}cutoff for ${program.code} via ${route.exam} to compare with`
+        : `Need your ${route.exam} ${route.cutoffType === "rank" ? "rank" : route.cutoffType} to decide`,
     likely: `Good chance for ${program.code} via ${route.exam}`,
   }[verdict];
 
@@ -297,10 +321,15 @@ export function estimateCost(data: CollegeData, input: CostInput): CostEstimate 
   }
 
   const yearsCount = Math.max(1, Math.min(Math.round(input.years ?? program.durationYears), program.durationYears));
+  if (yearsCount > 1) {
+    if (route.laterFeePerYear) assumptions.push(`Years 2 to ${yearsCount} use the fee currently published for second-year students (${formatINR(route.laterFeePerYear)}); yours may differ.`);
+    else if (data.feeNotes?.length) assumptions.push("Later-year fees aren't published here, so year 1 is repeated.");
+  }
+  assumptions.push(...(data.feeNotes ?? []));
   const annualFees = data.otherFees.filter((f) => f.frequency === "annual" && !f.hostelOnly).reduce((n, f) => n + f.amount, 0);
 
   const years: CostYear[] = Array.from({ length: yearsCount }, (_, i) => {
-    const tuition = route!.feePerYear;
+    const tuition = i > 0 && route!.laterFeePerYear ? route!.laterFeePerYear : route!.feePerYear;
     const waiver = scholarship ? -Math.round((tuition * scholarship.waiverPercent) / 100) : 0;
     const row = {
       year: i + 1,
@@ -451,7 +480,7 @@ export function buildAdmissionChecklist(data: CollegeData, input: { program: str
 
   const steps = counselling
     ? [
-        { title: `Register for ${counselling} counselling`, detail: `Choose Northgate ${program.code} in your option entry.` },
+        { title: `Register for ${counselling} counselling`, detail: `Choose ${COLLEGE.short} ${program.code} in your option entry.` },
         { title: "Download your seat allotment order", detail: "Pay the counselling authority's fee online as instructed." },
         { title: "Report to the Admissions Office", detail: "Within the reporting window, with original documents and two sets of photocopies." },
         { title: "Pay fees at the Accounts Section", detail: `Admission fee ${formatINR(admissionFee)}, caution deposit ${formatINR(caution)} and the first-year tuition of ${formatINR(route.feePerYear)}.` },
@@ -468,6 +497,18 @@ export function buildAdmissionChecklist(data: CollegeData, input: { program: str
         { title: "Collect your ID card and portal login", detail: "Then check the orientation schedule." },
       ];
 
+  // No separate admission fee or deposit published: only what the notices do say.
+  const publishedSteps = [
+    ...(counselling
+      ? [
+          { title: `Register for ${counselling} counselling`, detail: `Choose ${COLLEGE.short} ${program.code} in your option entry.` },
+          { title: "Download your admission order", detail: "Follow the counselling authority's payment instructions." },
+        ]
+      : [{ title: "Contact the Admissions Section", detail: "Apply for a management seat and get a confirmation letter. A rank card of an entrance test is needed." }]),
+    { title: "Report to the Admissions Section with your documents", detail: "Originals, plus 4 copies of the admission order or confirmation letter." },
+    { title: "Pay the first-year fee", detail: `${formatINR(route.feePerYear)} for Karnataka students, by demand draft, net banking, RTGS, IMPS or UPI.` },
+  ];
+
   const documents = data.requiredDocuments
     .filter((d) => d.level === "ALL" || d.level === program.level)
     .filter((d) => !(route.exam === "Management" && /scorecard/i.test(d.name)))
@@ -481,10 +522,10 @@ export function buildAdmissionChecklist(data: CollegeData, input: { program: str
   return {
     program: { code: program.code, name: program.name, degree: program.degree },
     route: { exam: route.exam, quota: route.quota },
-    steps,
+    steps: admissionFee ? steps : publishedSteps,
     documents,
     deadlines,
-    contact: data.contacts.find((c) => c.office === "Admissions Office") ?? null,
+    contact: data.contacts.find((c) => /^Admissions/.test(c.office)) ?? null,
     feeDueAtAdmission: admissionFee + caution + route.feePerYear,
   };
 }
@@ -504,5 +545,5 @@ export function suggestContact(data: CollegeData, text: string): Contact | null 
       bestScore = score;
     }
   }
-  return best ?? data.contacts.find((c) => c.office === "Admissions Office") ?? data.contacts[0] ?? null;
+  return best ?? data.contacts.find((c) => /^Admissions/.test(c.office)) ?? data.contacts[0] ?? null;
 }

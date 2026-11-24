@@ -48,6 +48,8 @@ const KNOWN: [suffix: string, name: string][] = [
   ["nirfindia.org", "NIRF"],
   ["iimcat.ac.in", "CAT"],
   ["aima.in", "AIMA"],
+  ["msrit.edu", "MSRIT"],
+  ["vtu.ac.in", "VTU"],
   ["karnataka.gov.in", "Govt of Karnataka"],
 ];
 
@@ -64,6 +66,8 @@ export const OFFICIAL_DOMAINS = [
   "nirfindia.org", // NIRF rankings
   "iimcat.ac.in", // CAT
   "aima.in", // MAT
+  "msrit.edu", // the college itself
+  "vtu.ac.in", // its university
 ] as const;
 
 /** GATE moves between IITs each year (gate2027.iitr.ac.in and so on). */

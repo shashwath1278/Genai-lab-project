@@ -1,8 +1,16 @@
 {
   "academicYear": "2026-27",
   "cutoffYear": 2025,
-  "categoryRankMultiplier": { "GM": 1, "OBC": 1.5, "SC/ST": 2.5 },
-  "categoryPercentileRelaxation": { "GM": 0, "OBC": 5, "SC/ST": 10 },
+  "categoryRankMultiplier": {
+    "GM": 1,
+    "OBC": null,
+    "SC/ST": null
+  },
+  "categoryPercentileRelaxation": {
+    "GM": 0,
+    "OBC": null,
+    "SC/ST": null
+  },
   "programs": [
     {
       "code": "CSE",
@@ -10,20 +18,139 @@
       "level": "UG",
       "degree": "B.E.",
       "durationYears": 4,
-      "intake": 180,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
       "department": "Department of Computer Science & Engineering",
       "minAggregate": 45,
       "reservedMinAggregate": 40,
-      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
-      "placementRate": 94,
-      "medianPackageLpa": 9.2,
-      "highestPackageLpa": 42,
-      "highlights": ["Specialisation tracks in Cloud, Security and Data Engineering", "Industry-sponsored final-year projects", "24x7 Innovation Lab access"],
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 9500, "feePerYear": 110000 },
-        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 6800, "feePerYear": 225000 },
-        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 92, "feePerYear": 450000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 450000 }
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 2076,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 1152,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "CSE-AIML",
+      "name": "Computer Science & Engineering (Artificial Intelligence & Machine Learning)",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Computer Science & Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 2791,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360, branch matched by us)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 1402,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "CSE-CY",
+      "name": "Computer Science & Engineering (Cyber Security)",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Computer Science & Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 4208,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 1738,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
       ]
     },
     {
@@ -32,20 +159,92 @@
       "level": "UG",
       "degree": "B.E.",
       "durationYears": 4,
-      "intake": 120,
-      "department": "Department of AI & Machine Learning",
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Artificial Intelligence & Machine Learning",
       "minAggregate": 45,
       "reservedMinAggregate": 40,
-      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
-      "placementRate": 91,
-      "medianPackageLpa": 8.8,
-      "highestPackageLpa": 36,
-      "highlights": ["GPU cluster for coursework and research", "Minor in Robotics available", "Applied ML capstone with partner companies"],
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 13000, "feePerYear": 110000 },
-        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 9000, "feePerYear": 225000 },
-        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 89, "feePerYear": 420000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 420000 }
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 3429,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360, branch matched by us)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 1826,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "AIDS",
+      "name": "Artificial Intelligence & Data Science",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Artificial Intelligence & Data Science",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 4160,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 2042,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
       ]
     },
     {
@@ -54,20 +253,45 @@
       "level": "UG",
       "degree": "B.E.",
       "durationYears": 4,
-      "intake": 120,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
       "department": "Department of Information Science & Engineering",
       "minAggregate": 45,
       "reservedMinAggregate": 40,
-      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
-      "placementRate": 89,
-      "medianPackageLpa": 7.9,
-      "highestPackageLpa": 28,
-      "highlights": ["Full-stack and product engineering focus", "Semester-long industry internship option in Year 4", "Open-source contribution credits"],
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 16000, "feePerYear": 110000 },
-        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 11500, "feePerYear": 225000 },
-        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 86, "feePerYear": 380000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 380000 }
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 3196,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
       ]
     },
     {
@@ -76,20 +300,233 @@
       "level": "UG",
       "degree": "B.E.",
       "durationYears": 4,
-      "intake": 120,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
       "department": "Department of Electronics & Communication Engineering",
       "minAggregate": 45,
       "reservedMinAggregate": 40,
-      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
-      "placementRate": 84,
-      "medianPackageLpa": 7.1,
-      "highestPackageLpa": 24,
-      "highlights": ["VLSI design lab with industry EDA tools", "Embedded systems and IoT electives", "Satellite communication ground station club"],
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 22000, "feePerYear": 110000 },
-        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 15000, "feePerYear": 210000 },
-        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 82, "feePerYear": 320000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 320000 }
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 4080,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 2347,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "ETE",
+      "name": "Electronics & Telecommunication Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Electronics & Telecommunication Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 7708,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 3450,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "EEE",
+      "name": "Electrical & Electronics Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Electrical & Electronics Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 10791,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 4414,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "EIE",
+      "name": "Electronics & Instrumentation Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Electronics & Instrumentation Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 15248,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 4803,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "AE",
+      "name": "Aerospace Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Aerospace Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 6536,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 6353,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
       ]
     },
     {
@@ -98,20 +535,139 @@
       "level": "UG",
       "degree": "B.E.",
       "durationYears": 4,
-      "intake": 60,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
       "department": "Department of Mechanical Engineering",
       "minAggregate": 45,
       "reservedMinAggregate": 40,
-      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
-      "placementRate": 72,
-      "medianPackageLpa": 5.4,
-      "highestPackageLpa": 14,
-      "highlights": ["EV powertrain and battery lab", "Formula Student team (Northgate Racing)", "Additive manufacturing centre"],
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 45000, "feePerYear": 110000 },
-        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 30000, "feePerYear": 190000 },
-        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 70, "feePerYear": 240000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 240000 }
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 20751,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 8716,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "BT",
+      "name": "Biotechnology",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Biotechnology",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 12464,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 16765,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "CH",
+      "name": "Chemical Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Chemical Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 21060,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 15319,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
       ]
     },
     {
@@ -120,20 +676,177 @@
       "level": "UG",
       "degree": "B.E.",
       "durationYears": 4,
-      "intake": 60,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
       "department": "Department of Civil Engineering",
       "minAggregate": 45,
       "reservedMinAggregate": 40,
-      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
-      "placementRate": 68,
-      "medianPackageLpa": 5.0,
-      "highestPackageLpa": 12,
-      "highlights": ["Smart-city and sustainable infrastructure electives", "Material testing lab recognised for consultancy", "Site internships every summer"],
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 52000, "feePerYear": 110000 },
-        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 35000, "feePerYear": 190000 },
-        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 65, "feePerYear": 220000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 220000 }
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 30510,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 20249,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "IEM",
+      "name": "Industrial Engineering & Management",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Industrial Engineering & Management",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 37513,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 15149,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MDE",
+      "name": "Medical Electronics Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Medical Electronics Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "10+2 with Physics and Mathematics, plus one of Chemistry, Biotechnology, Biology, Computer Science or Electronics",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government)",
+          "cutoffType": "rank",
+          "cutoff": 31013,
+          "feePerYear": 140820,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": "KCET 2025 round 3 (Careers360)"
+        },
+        {
+          "exam": "COMEDK",
+          "quota": "COMEDK",
+          "cutoffType": "rank",
+          "cutoff": 22730,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": "COMEDK 2026 round 3 (Careers360)"
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 354820,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "BARCH",
+      "name": "Architecture",
+      "level": "UG",
+      "degree": "B.Arch",
+      "durationYears": 5,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "School of Architecture",
+      "minAggregate": 50,
+      "reservedMinAggregate": 50,
+      "subjects": "10+2 with Physics, Chemistry and Mathematics (50% in these and overall), and a NATA score",
+      "highlights": [
+        "Five-year degree; NATA score required"
+      ],
+      "routes": [
+        {
+          "exam": "KCET",
+          "quota": "KEA (government, with NATA)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 142570,
+          "laterFeePerYear": 126020,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management (with NATA)",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 356570,
+          "laterFeePerYear": 325320,
+          "cutoffLabel": null
+        }
       ]
     },
     {
@@ -142,20 +855,36 @@
       "level": "PG",
       "degree": "MBA",
       "durationYears": 2,
-      "intake": 120,
-      "department": "Northgate School of Management",
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department of Management Studies",
       "minAggregate": 50,
       "reservedMinAggregate": 45,
-      "subjects": "Any bachelor's degree of at least 3 years",
-      "placementRate": 88,
-      "medianPackageLpa": 8.1,
-      "highestPackageLpa": 21,
-      "highlights": ["Dual specialisation (Finance, Marketing, HR, Business Analytics, Operations)", "Eight-week summer internship", "Live consulting projects with local MSMEs"],
+      "subjects": "A bachelor's degree of three years or more; KMAT, CMAT, MAT or PGCET score",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "PGCET", "quota": "Government", "cutoffType": "rank", "cutoff": 6500, "feePerYear": 85000 },
-        { "exam": "CAT", "quota": "Management (CAT/MAT merit)", "cutoffType": "percentile", "cutoff": 70, "feePerYear": 240000 },
-        { "exam": "MAT", "quota": "Management (CAT/MAT merit)", "cutoffType": "percentile", "cutoff": 80, "feePerYear": 240000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 240000 }
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 90050,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 382300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
       ]
     },
     {
@@ -164,39 +893,530 @@
       "level": "PG",
       "degree": "MCA",
       "durationYears": 2,
-      "intake": 60,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
       "department": "Department of Computer Applications",
       "minAggregate": 50,
       "reservedMinAggregate": 45,
-      "subjects": "BCA / B.Sc / B.Com / BA with Mathematics or Computer Science at 10+2 or degree level",
-      "placementRate": 86,
-      "medianPackageLpa": 6.5,
-      "highestPackageLpa": 18,
-      "highlights": ["Cloud-native application development track", "Six-month industry internship in final semester", "Bridge course for non-CS graduates"],
+      "subjects": "A bachelor's degree of three years or more, with Mathematics, Statistics, Computer Science or a similar subject; KMAT or PGCET score",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "PGCET", "quota": "Government", "cutoffType": "rank", "cutoff": 4000, "feePerYear": 70000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 160000 }
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 97050,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 314300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
       ]
     },
     {
       "code": "MTECH-CSE",
-      "name": "M.Tech in Computer Science & Engineering",
+      "name": "Computer Science & Engineering",
       "level": "PG",
       "degree": "M.Tech",
       "durationYears": 2,
-      "intake": 18,
-      "department": "Department of Computer Science & Engineering",
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Computer Science & Engineering",
       "minAggregate": 50,
       "reservedMinAggregate": 45,
-      "subjects": "B.E./B.Tech in CSE, ISE, AIML, IT or ECE",
-      "placementRate": 90,
-      "medianPackageLpa": 10.5,
-      "highestPackageLpa": 26,
-      "highlights": ["Research track with publication support", "Teaching assistantship for GATE-qualified students", "Access to the GPU research cluster"],
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
       "routes": [
-        { "exam": "GATE", "quota": "GATE merit", "cutoffType": "score", "cutoff": 450, "feePerYear": 60000 },
-        { "exam": "PGCET", "quota": "Government", "cutoffType": "rank", "cutoff": 1500, "feePerYear": 60000 },
-        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 120000 }
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-AI",
+      "name": "Artificial Intelligence",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Artificial Intelligence",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-DS",
+      "name": "Data Sciences",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Data Sciences",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-CNE",
+      "name": "Computer Network Engineering",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Computer Network Engineering",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-DEC",
+      "name": "Digital Electronics & Communication",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Digital Electronics & Communication",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-VLSI",
+      "name": "VLSI Design & Embedded Systems",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech VLSI Design & Embedded Systems",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-IOT",
+      "name": "IOT and Sensor Systems",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech IOT and Sensor Systems",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-RAI",
+      "name": "Robotics & Artificial Intelligence",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Robotics & Artificial Intelligence",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 108600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 189300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-SE",
+      "name": "Structural Engineering",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Structural Engineering",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 101600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 132300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-BT",
+      "name": "Biotechnology",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Biotechnology",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 101600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 132300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MTECH-AE",
+      "name": "Aerospace Engineering",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "Department offering M.Tech Aerospace Engineering",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E. or B.Tech in a relevant discipline; GATE qualified or Karnataka PGCET",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 101600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 132300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MARCH-AA",
+      "name": "Advanced Architecture",
+      "level": "PG",
+      "degree": "M.Arch",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "School of Architecture",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "A B.Arch degree",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 101600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 132300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
+      ]
+    },
+    {
+      "code": "MARCH-LA",
+      "name": "Landscape Architecture",
+      "level": "PG",
+      "degree": "M.Arch",
+      "durationYears": 2,
+      "intake": 0,
+      "placementRate": null,
+      "medianPackageLpa": null,
+      "highestPackageLpa": null,
+      "department": "School of Architecture",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "A B.Arch degree",
+      "highlights": [
+        "Autonomous programme under VTU"
+      ],
+      "routes": [
+        {
+          "exam": "PGCET",
+          "quota": "KEA (PGCET)",
+          "cutoffType": "rank",
+          "cutoff": null,
+          "feePerYear": 101600,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        },
+        {
+          "exam": "Management",
+          "quota": "Management",
+          "cutoffType": "none",
+          "cutoff": null,
+          "feePerYear": 132300,
+          "laterFeePerYear": null,
+          "cutoffLabel": null
+        }
       ]
     }
   ]

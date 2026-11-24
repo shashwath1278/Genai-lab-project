@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { loadCollegeDataFromJson } from "../src/lib/college-data";
 import { auditFeeReceipt, finishReading, parseReading, pcmPercent } from "../src/lib/reading";
 
-const data = loadCollegeDataFromJson(path.join(process.cwd(), "data", "structured"));
+const data = loadCollegeDataFromJson(path.join(process.cwd(), "fixtures", "northgate", "structured"));
 
 describe("parseReading", () => {
   it("pulls the JSON out of a chatty, fenced reply and coerces types", () => {

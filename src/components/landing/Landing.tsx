@@ -27,21 +27,21 @@ const FEATURES = [
   { art: LedgerSpot, title: "Numbers are calculated", text: "Fees, cutoffs and totals come from the college's own tables." },
   { art: TonguesSpot, title: "Ask in your language", text: "English, हिन्दी, ಕನ್ನಡ, தமிழ், తెలుగు. Type it or say it." },
   { art: GapSpot, title: "Honest when it doesn't know", text: "Unanswered questions go to staff, who fill the gap." },
-  { art: ScanSpot, title: "Snap it, check it", text: "Photograph a fee receipt and every line is checked against the official fees." },
-  { art: MapSpot, title: "Find your way", text: "Ask where any office is and get a map with the walking route." },
+  { art: ScanSpot, title: "Snap it, check it", text: "Photograph a fee receipt and every line is checked against the published fees." },
+  { art: MapSpot, title: "Looks beyond the handbook", text: "Ask it to search Reddit, official sites or the web, with every source shown." },
 ];
 
 const PEOPLE: { icon: Icon; who: string; persona: string; q: string; tint: string }[] = [
   { icon: PaperPlaneTilt, who: "Applicants", persona: "prospective", q: "Can I get AI & ML with KCET rank 12,000?", tint: "var(--accent-soft)" },
-  { icon: Backpack, who: "Students", persona: "current", q: "Last date to pay the exam fee?", tint: "var(--marigold-soft)" },
-  { icon: HouseLine, who: "Parents", persona: "parent", q: "How safe is the girls' hostel?", tint: "var(--leaf-soft)" },
+  { icon: Backpack, who: "Students", persona: "current", q: "What attendance do I need?", tint: "var(--marigold-soft)" },
+  { icon: HouseLine, who: "Parents", persona: "parent", q: "What are the hostel rules and mess timings?", tint: "var(--leaf-soft)" },
 ];
 
 const STATS = [
-  { to: 22, suffix: "", label: "handbook documents" },
-  { to: 137, suffix: "", label: "passages indexed" },
+  { to: 17, suffix: "", label: "handbook documents" },
+  { to: 100, suffix: "", label: "passages indexed" },
   { to: 5, suffix: "", label: "languages" },
-  { to: 100, suffix: "%", label: "top-5 retrieval on 42 test questions" },
+  { to: 96, suffix: "%", label: "top-5 retrieval on 27 test questions" },
 ];
 
 const reveal = {
@@ -237,7 +237,7 @@ function Footer() {
     <footer className="border-t border-line">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-8 text-[13px] text-muted">
         <span className="inline-flex items-center gap-2">
-          <BrandMark className="size-5" /> Northgate is a fictional college; all data is for demonstration.
+          <BrandMark className="size-5" /> A student project, not an official college service. Answers use published MSRIT information; confirm with the college.
         </span>
         <span className="sm:ml-auto">Next.js · SQLite · Gemini</span>
         <Link href="/admin" className="hover:text-ink">

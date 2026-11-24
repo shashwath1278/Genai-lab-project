@@ -11,7 +11,7 @@ const mono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Northgate Copilot",
-  description: "Ask the (fictional) Northgate Institute of Technology anything and get answers with sources, in five languages.",
+  description: "Ask about M S Ramaiah Institute of Technology and get answers with sources, in five languages. An independent student project.",
 };
 
 export const viewport: Viewport = {

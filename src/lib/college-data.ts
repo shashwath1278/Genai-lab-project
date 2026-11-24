@@ -11,6 +11,10 @@ export type Route = {
   cutoffType: CutoffType;
   cutoff: number | null;
   feePerYear: number;
+  /** Fee in later years, when the college publishes a different one. */
+  laterFeePerYear?: number | null;
+  /** Which exam round the cutoff is from, e.g. "KCET 2025 round 3". */
+  cutoffLabel?: string | null;
 };
 
 export type Program = {
@@ -19,6 +23,7 @@ export type Program = {
   level: "UG" | "PG";
   degree: string;
   durationYears: number;
+  /** 0 when not published. */
   intake: number;
   department: string;
   minAggregate: number;
@@ -83,8 +88,13 @@ export type Contact = {
 export type CollegeData = {
   academicYear: string;
   cutoffYear: number;
-  categoryRankMultiplier: Record<Category, number>;
-  categoryPercentileRelaxation: Record<Category, number>;
+  /** null: cutoffs for that category aren't known. */
+  categoryRankMultiplier: Record<Category, number | null>;
+  categoryPercentileRelaxation: Record<Category, number | null>;
+  /** Extra lines for every cost estimate: what it leaves out, whom it's for. */
+  feeNotes?: string[];
+  /** A surveyed campus map is available (src/lib/campus-map.ts). */
+  campusMap?: boolean;
   programs: Program[];
   otherFees: OtherFee[];
   hostelOptions: HostelOption[];
@@ -97,7 +107,9 @@ export type CollegeData = {
   contacts: Contact[];
 };
 
-export const STRUCTURED_DIR = path.join(process.cwd(), "data", "structured");
+/** data/ is the real college; fixtures/northgate is a made-up one for tests. */
+export const DATA_DIR = process.env.COLLEGE_DATA_DIR ? path.resolve(process.env.COLLEGE_DATA_DIR) : path.join(process.cwd(), "data");
+export const STRUCTURED_DIR = path.join(DATA_DIR, "structured");
 
 export function loadCollegeDataFromJson(dir = STRUCTURED_DIR): CollegeData {
   const programs = JSON.parse(fs.readFileSync(path.join(dir, "programs.json"), "utf8"));
@@ -114,19 +126,21 @@ export function seedStructuredData(db: DB, data: CollegeData) {
     for (const t of tables) db.prepare(`DELETE FROM ${t}`).run();
 
     const setting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
-    for (const key of ["academicYear", "cutoffYear", "categoryRankMultiplier", "categoryPercentileRelaxation", "scholarshipNotes"] as const) {
-      setting.run(key, JSON.stringify(data[key]));
+    for (const key of ["academicYear", "cutoffYear", "categoryRankMultiplier", "categoryPercentileRelaxation", "scholarshipNotes", "feeNotes", "campusMap"] as const) {
+      setting.run(key, JSON.stringify(data[key] ?? null));
     }
+
+    setting.run("seededAt", JSON.stringify(new Date().toISOString()));
 
     const program = db.prepare(`INSERT INTO programs (code, name, level, degree, duration_years, intake, department,
       min_aggregate, reserved_min_aggregate, subjects, placement_rate, median_package_lpa, highest_package_lpa, highlights)
       VALUES (@code, @name, @level, @degree, @durationYears, @intake, @department, @minAggregate, @reservedMinAggregate,
       @subjects, @placementRate, @medianPackageLpa, @highestPackageLpa, @highlights)`);
-    const route = db.prepare(`INSERT INTO program_routes (program_code, exam, quota, cutoff_type, cutoff, fee_per_year)
-      VALUES (?, ?, ?, ?, ?, ?)`);
+    const route = db.prepare(`INSERT INTO program_routes (program_code, exam, quota, cutoff_type, cutoff, fee_per_year, later_fee_per_year, cutoff_label)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
     for (const p of data.programs) {
       program.run({ ...p, highlights: JSON.stringify(p.highlights) });
-      for (const r of p.routes) route.run(p.code, r.exam, r.quota, r.cutoffType, r.cutoff, r.feePerYear);
+      for (const r of p.routes) route.run(p.code, r.exam, r.quota, r.cutoffType, r.cutoff, r.feePerYear, r.laterFeePerYear ?? null, r.cutoffLabel ?? null);
     }
 
     const fee = db.prepare("INSERT INTO other_fees (code, name, amount, frequency, refundable, hostel_only) VALUES (?, ?, ?, ?, ?, ?)");
@@ -188,6 +202,8 @@ export function loadCollegeDataFromDb(db: DB): CollegeData {
           cutoffType: r.cutoff_type as CutoffType,
           cutoff: r.cutoff as number | null,
           feePerYear: r.fee_per_year as number,
+          laterFeePerYear: r.later_fee_per_year as number | null,
+          cutoffLabel: r.cutoff_label as string | null,
         })),
     }),
   );
@@ -198,6 +214,8 @@ export function loadCollegeDataFromDb(db: DB): CollegeData {
     categoryRankMultiplier: settings.categoryRankMultiplier,
     categoryPercentileRelaxation: settings.categoryPercentileRelaxation,
     scholarshipNotes: settings.scholarshipNotes ?? [],
+    feeNotes: settings.feeNotes ?? [],
+    campusMap: settings.campusMap ?? false,
     programs,
     otherFees: (db.prepare("SELECT * FROM other_fees ORDER BY rowid").all() as Row[]).map((f) => ({
       code: f.code as string,

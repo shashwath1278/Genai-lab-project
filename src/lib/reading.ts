@@ -127,7 +127,7 @@ export function auditFeeReceipt(data: CollegeData, fees: NonNullable<Reading["fe
   // Most specific first: "hostel caution deposit" must not match plain "caution deposit".
   const RULES: { test: RegExp; name: string; options: Option[] | "waiver" }[] = [
     { test: /scholarship|waiver|concession|discount|rebate/i, name: "Scholarship or concession", options: "waiver" },
-    { test: /tuition|course fee|programme fee|program fee|academic fee/i, name: "Tuition", options: tuition },
+    { test: /tuition|course fee|programme fee|program fee|academic fee|college fee|total fee/i, name: "College fee", options: tuition },
     { test: /hostel.*(caution|deposit)|(caution|deposit).*hostel/i, name: "Hostel caution deposit", options: other("HOSTEL_CAUTION") },
     { test: /hostel.*(admission|registration)/i, name: "Hostel admission fee", options: other("HOSTEL_ADMISSION") },
     { test: /mess|food|dining/i, name: "Mess plan", options: data.messPlans.map((m) => ({ amount: m.feePerYear, label: m.name })) },
@@ -140,7 +140,7 @@ export function auditFeeReceipt(data: CollegeData, fees: NonNullable<Reading["fe
 
   const lines: AuditLine[] = fees.lines.map(({ label, amount }) => {
     const rule = RULES.find((r) => r.test.test(label));
-    if (!rule) return { label, amount, official: null, matched: null, status: "unknown", note: "Not a fee in Northgate's official fee tables." };
+    if (!rule) return { label, amount, official: null, matched: null, status: "unknown", note: "Not a fee in the published fee notices." };
     if (rule.options === "waiver") {
       return { label, amount, official: null, matched: rule.name, status: "info", note: "Depends on your eligibility; the Scholarship Cell can confirm it." };
     }

@@ -15,6 +15,8 @@ export type GeneratedDoc = {
 };
 
 function cutoffLabel(r: Route, cutoffYear: number): string {
+  if (r.cutoffType !== "none" && r.cutoff == null) return "cutoff not published";
+  if (r.cutoffLabel) return `closing rank ${formatNumber(r.cutoff!)} (${r.cutoffLabel})`;
   if (r.cutoffType === "rank") return `closing rank ${formatNumber(r.cutoff!)} (${cutoffYear})`;
   if (r.cutoffType === "percentile") return `${r.cutoff} percentile and above (${cutoffYear})`;
   if (r.cutoffType === "score") return `GATE score ${r.cutoff} and above (${cutoffYear})`;
@@ -32,13 +34,13 @@ function programsDoc(d: CollegeData): GeneratedDoc {
     lines.push(`## ${p.degree} ${p.name} (${p.code})`);
     lines.push("");
     lines.push(
-      `${p.degree} ${p.name} is a ${p.durationYears}-year ${p.level === "UG" ? "undergraduate" : "postgraduate"} programme run by the ${p.department}, with an intake of ${p.intake} students.`,
+      `${p.degree} ${p.name} is a ${p.durationYears}-year ${p.level === "UG" ? "undergraduate" : "postgraduate"} programme run by the ${p.department}${p.intake ? `, with an intake of ${p.intake} students` : ""}.`,
     );
     lines.push(
       `Eligibility: ${p.subjects}; minimum aggregate ${p.minAggregate}% (${p.reservedMinAggregate}% for OBC and SC/ST candidates).`,
     );
     lines.push("");
-    lines.push("| Admission route | Quota | Cutoff | Tuition fee per year |");
+    lines.push("| Admission route | Quota | Cutoff | Fee per year |");
     lines.push("|---|---|---|---|");
     for (const r of p.routes) {
       lines.push(`| ${r.exam} | ${r.quota} | ${cutoffLabel(r, d.cutoffYear)} | ${formatINR(r.feePerYear)} |`);
@@ -49,17 +51,21 @@ function programsDoc(d: CollegeData): GeneratedDoc {
         `Placements (${d.cutoffYear} season): ${p.placementRate}% of eligible students placed, median package ${p.medianPackageLpa} LPA, highest package ${p.highestPackageLpa} LPA.`,
       );
     }
+    if (p.routes.some((r) => r.laterFeePerYear)) lines.push(`The fee shown is for year 1; second-year students currently pay ${p.routes.filter((r) => r.laterFeePerYear).map((r) => `${formatINR(r.laterFeePerYear!)} (${r.exam})`).join(", ")}.`);
     lines.push(`Highlights: ${p.highlights.join("; ")}.`);
     lines.push("");
   }
 
+  if (d.categoryRankMultiplier.OBC != null) {
   lines.push("## Category relaxation for cutoffs");
   lines.push("");
   lines.push(
     `Cutoffs above are for General Merit (GM). In past years, OBC candidates were admitted up to about ${d.categoryRankMultiplier.OBC}x the GM closing rank and SC/ST candidates up to about ${d.categoryRankMultiplier["SC/ST"]}x. Percentile cutoffs are about ${d.categoryPercentileRelaxation.OBC} points lower for OBC and ${d.categoryPercentileRelaxation["SC/ST"]} points lower for SC/ST. These are indicative; the counselling authority's allotment is final.`,
   );
   lines.push("");
+  }
 
+  if (d.otherFees.length) {
   lines.push("## Other fees (all programmes)");
   lines.push("");
   lines.push("| Fee | Amount | When | Refundable |");
@@ -68,6 +74,8 @@ function programsDoc(d: CollegeData): GeneratedDoc {
     lines.push(`| ${f.name} | ${formatINR(f.amount)} | ${f.frequency === "annual" ? "every year" : "once, at admission"} | ${f.refundable ? "yes" : "no"} |`);
   }
   lines.push("");
+  }
+  for (const n of d.feeNotes ?? []) lines.push(`- ${n}`);
   return {
     slug: "programmes-eligibility-fees",
     title: `Programmes, Eligibility & Fees (${d.academicYear})`,
@@ -204,7 +212,7 @@ function documentsDoc(d: CollegeData): GeneratedDoc {
     content: [
       "# Admission Documents Checklist",
       "",
-      "Bring the originals and two sets of self-attested photocopies to document verification.",
+      d.otherFees.length ? "Bring the originals and two sets of self-attested photocopies to document verification." : "From the college's admission checklist (2025). Confirm with the Admissions Section before you travel.",
       "",
       "## B.E. (undergraduate) admissions",
       "",
@@ -259,5 +267,13 @@ function campusMapDoc(): GeneratedDoc {
 }
 
 export function renderGeneratedDocs(d: CollegeData): GeneratedDoc[] {
-  return [programsDoc(d), hostelTransportDoc(d), scholarshipsDoc(d), calendarDoc(d), contactsDoc(d), documentsDoc(d), campusMapDoc()];
+  return [
+    programsDoc(d),
+    ...(d.hostelOptions.length ? [hostelTransportDoc(d)] : []),
+    ...(d.scholarships.length ? [scholarshipsDoc(d)] : []),
+    calendarDoc(d),
+    contactsDoc(d),
+    documentsDoc(d),
+    ...(d.campusMap ? [campusMapDoc()] : []),
+  ];
 }

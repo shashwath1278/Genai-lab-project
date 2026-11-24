@@ -24,7 +24,7 @@ export function CompareCard({ result }: { result: CompareResult }) {
         kind: "note",
         title: `Compared ${programs.map((p) => p.code).join(" vs ")}`,
         detail: programs
-          .map((p) => `${p.code}: placements ${p.placementRate ?? "?"}%, median ${p.medianPackageLpa ?? "?"} LPA, from ${formatINR(p.lowestFeePerYear)}/yr`)
+          .map((p) => `${p.code}: ${p.placementRate != null ? `placements ${p.placementRate}%, median ${p.medianPackageLpa} LPA, ` : ""}from ${formatINR(p.lowestFeePerYear)}/yr`)
           .join("\n"),
       },
     ]);
@@ -65,7 +65,7 @@ export function CompareCard({ result }: { result: CompareResult }) {
             </tr>
           </thead>
           <tbody>
-            {row("Seats", programs.map((p) => p.intake))}
+            {programs.some((p) => p.intake) && row("Seats", programs.map((p) => p.intake || "—"))}
             {exams.map((exam) =>
               row(
                 exam,
@@ -82,8 +82,8 @@ export function CompareCard({ result }: { result: CompareResult }) {
                 }),
               ),
             )}
-            {row("Placed", programs.map((p) => (p.placementRate != null ? `${p.placementRate}%` : "—")))}
-            {row("Median pay", programs.map((p) => (p.medianPackageLpa != null ? `${p.medianPackageLpa} LPA` : "—")))}
+            {programs.some((p) => p.placementRate != null) && row("Placed", programs.map((p) => (p.placementRate != null ? `${p.placementRate}%` : "—")))}
+            {programs.some((p) => p.medianPackageLpa != null) && row("Median pay", programs.map((p) => (p.medianPackageLpa != null ? `${p.medianPackageLpa} LPA` : "—")))}
           </tbody>
         </table>
       </div>

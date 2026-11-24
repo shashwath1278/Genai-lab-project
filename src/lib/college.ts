@@ -1,11 +1,17 @@
 // Shared by client and server: no Node imports here.
 
 export const COLLEGE = {
-  name: "Northgate Institute of Technology",
-  short: "NGIT",
+  name: "M S Ramaiah Institute of Technology",
+  short: "MSRIT",
   city: "Bengaluru",
+  /** Where the official information lives. */
+  site: "msrit.edu",
+  /** The app keeps its own name; it is not an official MSRIT service. */
   assistant: "Northgate Copilot",
 };
+
+/** Any name for the college: its own, or the app's ("is Northgate good for CSE?"). */
+export const COLLEGE_NAMES = /\bm\.?\s?s\.?\s?ramaiah institute of tech\w*|\bramaiah institute of tech\w*|\bmsrit\b|\bnorthgate(?: institute of technology)?\b|\bngit\b/gi;
 
 export const PERSONAS = [
   {
@@ -22,7 +28,7 @@ export const PERSONAS = [
     short: "Student",
     blurb: "Exams, attendance, hostel, library, clubs",
     tone: "a student already enrolled. Be brief and direct, like a helpful senior. Lead with the rule or the date, then the detail.",
-    starters: ["Last date to pay the exam fee?", "Where is the Examination Section?", "How do I apply for revaluation?"],
+    starters: ["What attendance do I need?", "How do I contact the Controller of Examinations?", "How do I apply for revaluation?"],
   },
   {
     id: "parent",
@@ -30,7 +36,7 @@ export const PERSONAS = [
     short: "Parent",
     blurb: "Safety, fees, refunds, progress tracking",
     tone: "a parent or guardian. Be warm, clear and reassuring without overselling. Spell out costs, safety measures and who to contact, and avoid student slang.",
-    starters: ["How safe is the girls' hostel?", "Refund if we cancel admission?", "Which scholarships cut the fees?"],
+    starters: ["Hostel rules and mess timings?", "Refund if we leave the hostel?", "Which scholarships cut the fees?"],
   },
 ] as const;
 

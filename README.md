@@ -1,6 +1,8 @@
 # Northgate Copilot
 
-An AI college-information assistant built on retrieval-augmented generation (RAG), for a **fictional** college, the Northgate Institute of Technology, Bengaluru.
+An AI college-information assistant built on retrieval-augmented generation (RAG). It answers for **M S Ramaiah Institute of Technology (MSRIT), Bengaluru**; "Northgate Copilot" is only the app's name. It is an independent student project, **not an official MSRIT service**.
+
+**Where the data comes from** (read on 24 November 2026): MSRIT's 2026-27 fee notices, 2026 brochure, hostel guide, admission checklist and website. Cutoff ranks come from Careers360 and FindUrCollege, not from MSRIT or KEA, and are labelled as such. Anything not published (hostel fees, seats per branch, reserved-category cutoffs, branch-wise placements) is left out, and the assistant says so or searches the web. There is no campus map for MSRIT, because no surveyed building data was available; the feature is still there for a dataset that has one. The made-up college used while building lives in `fixtures/northgate` and is used only by tests.
 
 Everything except the LLM call runs on your machine. Embeddings are computed locally with transformers.js. One SQLite file holds the documents, the keyword index (FTS5), the vector index (sqlite-vec), the structured college data and the app's own tables.
 
@@ -37,7 +39,7 @@ Everything except the LLM call runs on your machine. Embeddings are computed loc
   - **Your control:** the Memory tab lists every fact with where it came from. You can delete any of them, forget everything, or switch memory off.
   - **History:** conversations are saved automatically and can be reopened from the same tab, with attachments kept by name only.
 - **Campus map with walking directions.** "Where is the Examination Section?" brings up a hand-drawn campus map in the site's style, zoomed to the route, plus turn-by-turn steps ("At Jacaranda Circle, turn left onto Central Walk…"). Routes come from Dijkstra over a walkway graph, not from the LLM. The same data generates a "Campus Map and Directions" document, so text answers and the map agree.
-- **Live web search (optional, with a Tavily key).** "Scan Reddit for…", "what does Quora say about…", "check the official KEA site": it searches the named site, official exam and government sites, or the open web. An explicit request to search is recognised in code and always carried out; the model can't decline it. Results show on a "From the web" card with `[W1]` citations and a trust tag (Official, Community). Northgate is fictional and its initials belong to real colleges, so each result is checked for the college's full name: when none has it, the card and the answer say so, and the handbook's own figures are given instead of another college's.
+- **Live web search (optional, with a Tavily key).** "Scan Reddit for…", "what does Quora say about…", "check the official KEA site": it searches the named site, official exam and government sites, or the open web. An explicit request to search is recognised and run in code, so the model can't decline it. Results show on a "From the web" card with `[W1]` citations and a trust tag (Official, Community). Other Ramaiah institutions share part of the name, so each result is checked for MSRIT itself: when none is about it, the card and the answer say so. Opinions from places like Reddit are shown as quotes: the model picks lines, and code drops any that aren't word for word in the post.
 
   Every web source shows its site's logo, the way search answers show favicons. Platforms like Reddit, X, GitHub and YouTube get their own marks (Phosphor brand icons), other sites their favicon, and government sites without one a government glyph. The logos appear on the card, as the inline citation chips, as a stacked "N web sources" button under the answer and in a "From the web" section of the Sources panel. The logo code handles any site, so widening the domain allowlist needs no UI work.
 - **Provider fallback.** With both keys set, Gemini answers first. When a model hits a rate limit or quota, the next one takes over: Groq's `gpt-oss-120b`, then its smaller `gpt-oss-20b` as a last resort. A model is skipped for 30 minutes after a daily quota and 20 seconds after a per-minute limit; limits are per model, so cooldowns are too. Free tiers are small: the Gemini key this was built with allowed 20 requests a day, and Groq allows 200,000 tokens a day per model (roughly 20-30 answers).
@@ -120,19 +122,19 @@ question ──► rewrite to a standalone English query    (follow-ups, Indic s
 
 ## Retrieval evaluation
 
-`npm run eval` scores 42 questions against an expected section (not just the right document), using top-5 retrieval:
+`npm run eval` scores 27 MSRIT questions against an expected section (not just the right document), using top-5 retrieval:
 
 | Mode | hit@1 | hit@5 | MRR |
 |---|---|---|---|
-| Keyword (FTS5 BM25) | 81.0% | 97.6% | 0.881 |
-| Semantic (bge-small + sqlite-vec) | 88.1% | 100% | 0.933 |
-| **Hybrid (weighted RRF)** | **88.1%** | **100%** | **0.933** |
+| Keyword (FTS5 BM25) | 81.5% | 96.3% | 0.883 |
+| Semantic (bge-small + sqlite-vec) | 77.8% | 100% | 0.889 |
+| **Hybrid (weighted RRF)** | **85.2%** | **96.3%** | **0.907** |
 
-On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimming pool" still scores 0.73, because it sits close to the sports-facilities section. That is why there is a second gap signal: the model calls `flagKnowledgeGap` when the passages don't answer the question.
+All four off-corpus questions are flagged as low confidence. A second gap signal covers the rest: the model calls `flagKnowledgeGap` when the passages don't answer the question.
 
 ## Testing
 
-- **Unit tests** (`npm test`, Vitest, 163 tests):
+- **Unit tests** (`npm test`, Vitest, 169 tests):
   - chunker, calculators, retrieval fusion, gap clustering, calendar export and formatting (including the pre-written rupee figures the model is given)
   - campus routing and place matching, the official-domain allowlist, snippet cleaning, site names for logos, reading parsing, the PCM aggregate and the fee-receipt audit
   - memory: facts from tool inputs and readings, the store (changes only, capped notes, per-browser, off switch) and chat history (attachments by name, no cross-browser access)
@@ -152,7 +154,7 @@ On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimm
   - **Admin:** document upload and delete
   - **Phone layout**
   - **Light and dark captures:** no console errors and no sideways scrolling. Screenshots land in `e2e-screens/`.
-- **Answer quality** (`npm run eval:answers`, needs the dev server running): 16 questions, each scored on four things — it called the right tool, it gave the key facts, its citations point at real passages, and it stayed grounded (or flagged a gap). The script uses its own session and deletes its rows from the database afterwards.
+- **Answer quality** (`npm run eval:answers`, needs the dev server running): 16 questions about the made-up test college (run the server with `COLLEGE_DATA_DIR=fixtures/northgate`), each scored on four things — it called the right tool, it gave the key facts, its citations point at real passages, and it stayed grounded (or flagged a gap). The script uses its own session and deletes its rows from the database afterwards.
   - **Last run:** the free quotas ran out part-way (Gemini's free tier allows 20 requests a day), so 10 of the 16 questions came back with the quota message instead of an answer.
   - **The 6 that were answered:** 5 passed. Tool choice was 5/5, key facts 2/3, citations 3/3 and grounding 5/6. Median answer time was 25.7 s, on the Groq fallback.
   - **The failure was worth finding.** One cost answer wrote the total as Rs 1,09,90,000 instead of Rs 10,99,000: the model regrouped a raw integer the Indian way and slipped a digit. The calculators now hand the model every rupee figure already written out ("Rs 10,99,000 (Rs 10.99 lakh)") through the tool's `toModelOutput`, and the prompt says to copy them exactly. The card still gets the raw numbers. This fix hasn't yet been re-run against a live model.

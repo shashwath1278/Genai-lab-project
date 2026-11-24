@@ -20,7 +20,7 @@ import {
 } from "../src/lib/memory";
 import type { ReadingFile } from "../src/lib/reading";
 
-const data = loadCollegeDataFromJson(path.join(process.cwd(), "data", "structured"));
+const data = loadCollegeDataFromJson(path.join(process.cwd(), "fixtures", "northgate", "structured"));
 const file = path.join(os.tmpdir(), `northgate-memory-${process.pid}.db`);
 const db = openDb(file);
 afterAll(() => {

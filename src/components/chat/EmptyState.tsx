@@ -14,7 +14,7 @@ const TITLE: Record<PersonaId, [string, string]> = {
 // Shortcuts drop an editable template into the composer instead of sending.
 const SHORTCUTS: { icon: Icon; label: string; template: string; tint: string }[] = [
   { icon: GraduationCap, label: "Eligibility", template: "Am I eligible for CSE with 80% in PCM and a KCET rank of 11,000?", tint: "var(--accent-soft)" },
-  { icon: Wallet, label: "Total cost", template: "What will AIML cost for 4 years via COMEDK with a double non-AC hostel room?", tint: "var(--marigold-soft)" },
+  { icon: Wallet, label: "Total cost", template: "What will AIML cost for 4 years via COMEDK?", tint: "var(--marigold-soft)" },
   { icon: Columns, label: "Compare", template: "Compare CSE, AIML and ECE", tint: "var(--leaf-soft)" },
   { icon: CalendarBlank, label: "Key dates", template: "What are the upcoming important dates?", tint: "var(--laterite-soft)" },
 ];

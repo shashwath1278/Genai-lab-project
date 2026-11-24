@@ -10,7 +10,7 @@ import { CardFrame, cx, IconButton } from "../ui";
 // Fixed component -> series slot mapping: a component keeps its color even when
 // another component is zero and drops out of the bar.
 const COMPONENTS = [
-  { key: "tuitionNet", label: "Tuition", color: "var(--series-1)" },
+  { key: "tuitionNet", label: "College fee", color: "var(--series-1)" },
   { key: "hostel", label: "Hostel", color: "var(--series-2)" },
   { key: "mess", label: "Mess", color: "var(--series-3)" },
   { key: "annualFees", label: "Annual fees", color: "var(--series-4)" },
@@ -52,9 +52,9 @@ export function CostCard({ estimate }: { estimate: CostEstimate }) {
     ]);
 
   const rows: [string, number, number][] = [
-    ["Tuition", year.tuition, t.tuition],
+    ["College fee", year.tuition, t.tuition],
     ...(t.scholarship ? ([["Scholarship waiver", year.scholarship, t.scholarship]] as [string, number, number][]) : []),
-    ["Exam, lab & activity fees", year.annualFees, t.annualFees],
+    ...(t.annualFees ? ([["Exam, lab & activity fees", year.annualFees, t.annualFees]] as [string, number, number][]) : []),
     ...(t.hostel ? ([["Hostel room", year.hostel, t.hostel]] as [string, number, number][]) : []),
     ...(t.mess ? ([["Mess", year.mess, t.mess]] as [string, number, number][]) : []),
     ...(t.transport ? ([["College bus", year.transport, t.transport]] as [string, number, number][]) : []),
@@ -74,7 +74,8 @@ export function CostCard({ estimate }: { estimate: CostEstimate }) {
           </span>
         </p>
         <p className="text-[13px] text-ink-2">
-          {formatINR(year.total)}/yr + {formatINR(t.oneTime)} once
+          {estimate.years.every((y) => y.total === year.total) ? `${formatINR(year.total)}/yr` : `${formatINR(year.total)} in year 1, ${formatINR(estimate.years[1].total)} after`}
+          {t.oneTime > 0 && ` + ${formatINR(t.oneTime)} once`}
         </p>
       </div>
 

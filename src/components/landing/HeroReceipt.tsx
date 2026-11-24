@@ -26,9 +26,8 @@ function paperPath(): string {
 const PAPER = paperPath();
 
 const LINES: [string, string][] = [
-  ["Tuition", "4.40"],
-  ["Hostel + mess", "5.32"],
-  ["Fees", "1.27"],
+  ["Year 1", "1.41"],
+  ["Years 2-4", "3.78"],
 ];
 
 export function HeroReceipt({ className }: { className?: string }) {
@@ -63,7 +62,7 @@ export function HeroReceipt({ className }: { className?: string }) {
 
           <div className="relative flex h-full flex-col px-3.5 pb-5 pt-3 font-mono text-[9.5px] text-ink">
             <p className="text-[7.5px] tracking-[0.16em] text-muted">NORTHGATE · RECEIPT</p>
-            <p className="mt-1.5 font-display text-[14px] italic leading-tight">&ldquo;CSE, 4 years, with hostel?&rdquo;</p>
+            <p className="mt-1.5 font-display text-[14px] italic leading-tight">&ldquo;CSE, 4 years via KCET?&rdquo;</p>
             <ul className="mt-2 space-y-1 border-t border-dashed border-ink/40 pt-2">
               {LINES.map(([label, lakh]) => (
                 <li key={label} className="rcpt-line flex items-baseline gap-1">
@@ -75,7 +74,7 @@ export function HeroReceipt({ className }: { className?: string }) {
             </ul>
             <div className="rcpt-total mt-2 flex items-baseline justify-between border-t-[1.5px] border-double border-ink pt-1.5">
               <span className="text-[8.5px] tracking-[0.12em]">TOTAL</span>
-              <span className="font-display text-[21px] leading-none">Rs 10.99 L</span>
+              <span className="font-display text-[21px] leading-none">Rs 5.19 L</span>
             </div>
             <p className="mt-auto flex items-center gap-1 text-[7.5px] tracking-[0.12em] text-muted">
               SOURCES

@@ -12,7 +12,7 @@ import {
 } from "../src/lib/calculators";
 import { loadCollegeDataFromJson } from "../src/lib/college-data";
 
-const data = loadCollegeDataFromJson(path.join(__dirname, "..", "data", "structured"));
+const data = loadCollegeDataFromJson(path.join(__dirname, "..", "fixtures", "northgate", "structured"));
 
 describe("findProgram", () => {
   it("accepts codes, aliases and names", () => {

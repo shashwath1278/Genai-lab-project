@@ -11,6 +11,13 @@ export const DB_PATH = process.env.COLLEGE_DB_PATH ?? path.join(process.cwd(), "
 // Survive Next's dev hot reloads: one connection per process.
 const g = globalThis as unknown as { __collegeDb?: DB; __collegeDbSchema?: string };
 
+/** Columns added after a database was first created. */
+function migrate(db: DB) {
+  const has = new Set((db.prepare("PRAGMA table_info(program_routes)").all() as { name: string }[]).map((c) => c.name));
+  if (!has.has("later_fee_per_year")) db.exec("ALTER TABLE program_routes ADD COLUMN later_fee_per_year INTEGER");
+  if (!has.has("cutoff_label")) db.exec("ALTER TABLE program_routes ADD COLUMN cutoff_label TEXT");
+}
+
 export function openDb(file = DB_PATH): DB {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const db: DB = new (loadBetterSqlite())(file);
@@ -18,6 +25,7 @@ export function openDb(file = DB_PATH): DB {
   db.pragma("foreign_keys = ON");
   loadSqliteVec().load(db);
   db.exec(SCHEMA);
+  migrate(db);
   return db;
 }
 

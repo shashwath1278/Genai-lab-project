@@ -1,17 +1,20 @@
 ---
-title: NRI and International Students
+title: NRI, PIO and Foreign National Admissions
 category: admissions
 audience: [prospective, parent]
-effective: 2026-06-01
+effective: 2026-11-24
 ---
 
-# NRI and International Students
+# NRI, PIO and Foreign National Admissions
 
-## NRI quota
-Up to 5% of seats in each B.E. programme and in the MBA are reserved for NRI candidates and children of NRIs. Admission is based on 12th marks (or degree marks for MBA); an entrance exam is not required. The NRI fee is USD 7,500 per year for B.E. programmes and USD 5,000 per year for the MBA, in addition to hostel and other fees.
+## Eligibility
+B.E. programmes only, under the supernumerary quota. 10+2 with Physics and Mathematics, along with Chemistry, Biotechnology, Computer Science, Electronics or Biology, English as a language, and at least 50% in the optional subjects (VTU criteria).
 
-## Foreign nationals
-International students apply directly through the Admissions Office. Eligibility is equivalent to the Indian requirements (Physics and Mathematics at 12th level for B.E.). Applicants from non-English-medium schools need an English proficiency score (IELTS 6.0 or equivalent). International students need a valid student visa, and must register with the Foreigners Regional Registration Office (FRRO) within 14 days of arrival; the International Desk at the Admissions Office helps with this.
+## Who can apply
+NRI: children of parents of Indian origin working in Gulf countries. Foreign nationals: citizens of countries other than India. PIO: people of Indian origin who are citizens of other countries (except Pakistan and Bangladesh).
 
 ## Documents
-NRI and international applicants need an equivalence certificate from the Association of Indian Universities for qualifications earned outside India, passport copies, and (for NRI quota) proof of the parent's NRI status, such as a passport with visa or a work permit.
+Confirmation letter from the Principal (original and 4 copies), online application form, 12th and 10th marks sheets, parents' passport copy and working certificate (the checklist says at least 2 years; the admissions page says 5 years for NRI, so confirm), letter from the Indian Embassy as proof of NRI status, residential permit and HIV certificate, passport and visa copies, transfer certificate and migration certificate.
+
+## Contact
+Admissions Section: admn@msrit.edu, 080-23607902. Source: MSRIT brochure 2026 and CHECK LIST 2025.

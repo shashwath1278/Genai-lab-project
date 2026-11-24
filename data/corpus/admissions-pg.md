@@ -1,33 +1,27 @@
 ---
-title: Postgraduate Admissions (MBA, MCA, M.Tech)
+title: MBA, MCA, M.Tech and M.Arch Admissions
 category: admissions
 audience: [prospective, parent]
-effective: 2026-06-01
+effective: 2026-11-24
 ---
 
-# Postgraduate Admissions (MBA, MCA, M.Tech)
+# MBA, MCA, M.Tech and M.Arch Admissions
 
 ## MBA
-The two-year MBA is offered by the Northgate School of Management. Graduates with any bachelor's degree of at least three years and a minimum of 50% aggregate (45% for reserved categories) are eligible.
-
-Admission routes:
-- **PGCET**: government quota seats through Karnataka PGCET counselling.
-- **CAT or MAT**: management seats filled by CAT or MAT percentile, followed by a group discussion and personal interview.
-- **Management (direct)**: remaining seats based on degree marks and an interview.
-
-Students choose a dual specialisation at the end of the first year from Finance, Marketing, Human Resources, Business Analytics and Operations.
+A bachelor's degree of three years or more with at least 50% aggregate (45% for Karnataka SC/ST and Category-1). Entrance: any one of KMAT, CMAT, MAT or PGCET.
 
 ## MCA
-The two-year MCA is open to BCA, B.Sc, B.Com or BA graduates who studied Mathematics or Computer Science at 12th or degree level, with at least 50% aggregate (45% for reserved categories). Admission is through PGCET or the management quota. Students without a computer science background attend a four-week bridge course before the first semester.
+A bachelor's degree of three years or more with at least 50% aggregate (45% for Karnataka SC/ST and Category-1), with Mathematics, Statistics, Computer Science or a similar subject as an optional. Entrance: KMAT or PGCET.
 
-## M.Tech in Computer Science & Engineering
-Candidates need a B.E. or B.Tech in CSE, ISE, AIML, IT or ECE with at least 50% aggregate (45% for reserved categories). Admission routes are GATE score, PGCET or management quota. GATE-qualified students are offered teaching assistantships in the department, which come with a monthly stipend from the institute.
+## M.Tech
+B.E. or B.Tech in a relevant discipline with at least 50% aggregate (45% for Karnataka SC/ST and Category-1). Entrance: GATE qualified or Karnataka PGCET. Source: www.msrit.edu/admissions.html.
 
-## Application process
-1. Apply on the Northgate admissions portal and upload your degree marks cards and entrance scorecard.
-2. MBA applicants are invited to a group discussion and interview; M.Tech applicants attend a technical interview.
-3. Selected candidates receive a provisional admission letter and pay the admission fee within 15 days.
-4. Document verification and fee payment are completed before orientation.
+## Postgraduate first-year fees, 2026-27
+| Programme | PGCET, Karnataka | PGCET, non-Karnataka | Management, Karnataka | Management, non-Karnataka |
+|---|---|---|---|---|
+| MBA | Rs 90,050 | Rs 91,850 | Rs 3,82,300 | Rs 4,09,100 |
+| MCA | Rs 97,050 | Rs 98,850 | Rs 3,14,300 | Rs 3,41,100 |
+| M.Tech Structures, Biotechnology, Aerospace; M.Arch | Rs 1,01,600 | Rs 1,03,400 | Rs 1,32,300 | Rs 1,44,100 |
+| M.Tech Digital Electronics, CSE, CNE, VLSI, Data Science, AI, IoT, Robotics & AI | Rs 1,08,600 | Rs 1,10,400 | Rs 1,89,300 | Rs 2,01,100 |
 
-## Final-year degree students
-Students in the final year of their bachelor's degree can apply provisionally. Admission is confirmed when they submit the final marks card or provisional degree certificate before the end of the first semester.
+Source: MSRIT notice, 1st year PG courses fee structure 2026-27.

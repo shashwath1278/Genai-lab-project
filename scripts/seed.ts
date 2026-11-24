@@ -2,12 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseFrontmatter } from "../src/lib/chunker";
-import { loadCollegeDataFromJson, seedStructuredData } from "../src/lib/college-data";
+import { DATA_DIR, loadCollegeDataFromJson, seedStructuredData } from "../src/lib/college-data";
 import { closeDb, DB_PATH, getDb } from "../src/lib/db";
 import { deleteDocument, ingestDocument, type IngestDoc } from "../src/lib/ingest";
 import { renderGeneratedDocs } from "../src/lib/render-docs";
 
-const CORPUS_DIR = path.join(process.cwd(), "data", "corpus");
+const CORPUS_DIR = path.join(DATA_DIR, "corpus");
 
 function corpusDocs(): IngestDoc[] {
   return fs

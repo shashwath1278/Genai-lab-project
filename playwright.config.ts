@@ -29,6 +29,6 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 600_000,
     stdout: "pipe",
-    env: { COLLEGE_DB_PATH: "data/e2e.db", NEXT_DIST_DIR: ".next-e2e", ADMIN_PASSCODE: "" },
+    env: { COLLEGE_DB_PATH: "data/e2e.db", COLLEGE_DATA_DIR: "fixtures/northgate", NEXT_DIST_DIR: ".next-e2e", ADMIN_PASSCODE: "" },
   },
 });

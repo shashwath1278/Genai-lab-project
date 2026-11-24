@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { namedSites, siteTier } from "../src/lib/sites";
-import { asksAboutCollege, cleanSnippet, handbookQuery, isoDay, searchWeb, wantsWebSearch, webHost, webNote } from "../src/lib/websearch";
+import { asksAboutCollege, cleanSnippet, handbookQuery, isoDay, realName, searchWeb, wantsWebSearch, webHost, webNote } from "../src/lib/websearch";
 
 describe("result text", () => {
   it("strips markdown and decoration from page snippets", () => {
@@ -51,8 +51,8 @@ describe("recognising a request to search", () => {
 
   it("searches the handbook for the topic, not the website", () => {
     expect(handbookQuery("scan reddit for last year placements of this college")).toBe("last year placements of this college");
-    expect(handbookQuery("Northgate Institute of Technology last year placement statistics and student reviews on Reddit")).toBe(
-      "Northgate Institute of Technology last year placement statistics and student reviews",
+    expect(handbookQuery("MSRIT last year placement statistics and student reviews on Reddit")).toBe(
+      "MSRIT last year placement statistics and student reviews",
     );
     expect(handbookQuery("search the web")).toBe("search the web"); // nothing left: keep it
   });
@@ -60,7 +60,9 @@ describe("recognising a request to search", () => {
   it("knows when the college itself is meant", () => {
     expect(asksAboutCollege("placements of this college")).toBe(true);
     expect(asksAboutCollege("Northgate hostel reviews")).toBe(true);
+    expect(asksAboutCollege("MSRIT CSE fees")).toBe(true);
     expect(asksAboutCollege("KCET 2027 exam date")).toBe(false);
+    expect(realName("Northgate hostel")).toBe("MSRIT hostel");
   });
 });
 
@@ -93,19 +95,19 @@ describe("searchWeb", () => {
 
   it("keeps to a named site, numbers results and tags them", async () => {
     const f = fake([
-      { title: "Placements thread", url: "https://www.reddit.com/r/Btechtards/1", content: "NGIT placements were good", published_date: "Mon, 10 Nov 2026 08:00:00 GMT", favicon: "https://www.reddit.com/favicon.ico" },
+      { title: "Placements thread", url: "https://www.reddit.com/r/Btechtards/1", content: "Ramaiah Medical College placements were good", published_date: "Mon, 10 Nov 2026 08:00:00 GMT", favicon: "https://www.reddit.com/favicon.ico" },
       { title: "Sneaky", url: "https://blog.example.com/reddit", content: "not reddit" },
     ]);
     const out = await searchWeb("Northgate Institute of Technology placements", { sites: ["reddit"], aboutCollege: true, fetchImpl: f.fetchImpl, apiKey: "k", startAt: 3 });
     expect(f.body().include_domains).toEqual(["reddit.com"]);
     expect(out.results).toEqual([expect.objectContaining({ id: "W3", site: "Reddit", tier: "community", published: "2026-11-10", favicon: "https://www.reddit.com/favicon.ico" })]);
-    // "NGIT" alone is another college, so nothing here is about Northgate.
+    // A sister institution, so nothing here is about MSRIT.
     expect(out).toMatchObject({ scope: "Reddit", aboutCollege: true, collegeFound: false });
-    expect(webNote(out)).toMatch(/NONE of these results name Northgate Institute of Technology/);
+    expect(webNote(out)).toMatch(/NONE of these results name M S Ramaiah Institute of Technology/);
   });
 
   it("recognises a page that really names the college", async () => {
-    const f = fake([{ title: "Northgate Institute of Technology review", url: "https://example.org/a", content: "A student's view" }]);
+    const f = fake([{ title: "MSRIT review", url: "https://example.org/a", content: "A student's view" }]);
     const out = await searchWeb("x", { aboutCollege: true, fetchImpl: f.fetchImpl, apiKey: "k" });
     expect(out.collegeFound).toBe(true);
     expect(webNote(out)).not.toMatch(/NONE of these/);

@@ -95,6 +95,7 @@ async function chat(messages: Msg[], body: object = {}) {
 
 beforeAll(async () => {
   process.env.COLLEGE_DB_PATH = dbFile;
+  process.env.COLLEGE_DATA_DIR = path.join(process.cwd(), "fixtures", "northgate");
   const { seed } = await import("../scripts/seed");
   await seed({ fresh: true });
   ({ POST } = await import("../src/app/api/chat/route"));
@@ -207,21 +208,22 @@ describe("POST /api/chat", () => {
     const realFetch = globalThis.fetch;
     vi.stubGlobal("fetch", async (url: string | URL | Request, init?: RequestInit) =>
       String(url).includes("api.tavily.com")
-        ? new Response(JSON.stringify({ results: [{ title: "NGIT placements thread", url: "https://www.reddit.com/r/Btechtards/1", content: "NGIT Hyderabad had 60% placed" }] }))
+        ? new Response(JSON.stringify({ results: [{ title: "Ramaiah Medical College placements thread", url: "https://www.reddit.com/r/Btechtards/1", content: "60% placed" }] }))
         : realFetch(url, init),
     );
     try {
-      script.push(toolCall("searchWeb", { query: "Northgate Institute of Technology placements" }), text("I searched Reddit and found nothing about Northgate. The handbook says 87% were placed [1]."));
+      script.push(text("I searched Reddit and found nothing about Northgate. The handbook says 87% were placed [1]."));
       const chunks = await chat([{ role: "user", text: "scan reddit for last year placements of this college" }]);
-      expect(toolChoices.at(-2)).toEqual({ type: "tool", toolName: "searchWeb" }); // step 1: must search
-      expect(toolChoices.at(-1)).toEqual({ type: "auto" }); // step 2: free to answer
+      // The search ran without the model having to ask for it, for the college by its real name.
+      const call = chunks.find((c) => c.type === "tool-input-available") as unknown as { input: { query: string; sites: string[] } };
+      expect(call.input).toMatchObject({ query: "Ramaiah Institute of Technology MSRIT last year placements", sites: ["Reddit"] });
       const out = chunks.find((c) => c.type === "tool-output-available")?.output as { scope: string; collegeFound: boolean; results: { id: string; site: string }[] };
       expect(out).toMatchObject({ scope: "Reddit", collegeFound: false, results: [expect.objectContaining({ id: "W1", site: "Reddit" })] });
       // The handbook was searched for the topic, so its placements page is there to answer from.
       const evidence = chunks.find((c) => c.type === "data-evidence")!.data as { rewritten: string; passages: { docSlug: string }[] };
       expect(evidence.rewritten).toBe("last year placements of this college");
       expect(evidence.passages.map((p) => p.docSlug)).toContain("placements");
-      expect(prompts.at(-1)).toContain("NONE of these results name Northgate Institute of Technology");
+      expect(prompts.at(-1)).toContain("NONE of these results name M S Ramaiah Institute of Technology");
     } finally {
       vi.unstubAllGlobals();
       delete process.env.TAVILY_API_KEY;

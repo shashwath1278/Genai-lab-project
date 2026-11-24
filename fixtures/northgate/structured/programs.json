@@ -1,0 +1,203 @@
+{
+  "academicYear": "2026-27",
+  "cutoffYear": 2025,
+  "categoryRankMultiplier": { "GM": 1, "OBC": 1.5, "SC/ST": 2.5 },
+  "categoryPercentileRelaxation": { "GM": 0, "OBC": 5, "SC/ST": 10 },
+  "programs": [
+    {
+      "code": "CSE",
+      "name": "Computer Science & Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 180,
+      "department": "Department of Computer Science & Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
+      "placementRate": 94,
+      "medianPackageLpa": 9.2,
+      "highestPackageLpa": 42,
+      "highlights": ["Specialisation tracks in Cloud, Security and Data Engineering", "Industry-sponsored final-year projects", "24x7 Innovation Lab access"],
+      "routes": [
+        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 9500, "feePerYear": 110000 },
+        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 6800, "feePerYear": 225000 },
+        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 92, "feePerYear": 450000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 450000 }
+      ]
+    },
+    {
+      "code": "AIML",
+      "name": "Artificial Intelligence & Machine Learning",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 120,
+      "department": "Department of AI & Machine Learning",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
+      "placementRate": 91,
+      "medianPackageLpa": 8.8,
+      "highestPackageLpa": 36,
+      "highlights": ["GPU cluster for coursework and research", "Minor in Robotics available", "Applied ML capstone with partner companies"],
+      "routes": [
+        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 13000, "feePerYear": 110000 },
+        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 9000, "feePerYear": 225000 },
+        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 89, "feePerYear": 420000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 420000 }
+      ]
+    },
+    {
+      "code": "ISE",
+      "name": "Information Science & Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 120,
+      "department": "Department of Information Science & Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
+      "placementRate": 89,
+      "medianPackageLpa": 7.9,
+      "highestPackageLpa": 28,
+      "highlights": ["Full-stack and product engineering focus", "Semester-long industry internship option in Year 4", "Open-source contribution credits"],
+      "routes": [
+        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 16000, "feePerYear": 110000 },
+        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 11500, "feePerYear": 225000 },
+        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 86, "feePerYear": 380000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 380000 }
+      ]
+    },
+    {
+      "code": "ECE",
+      "name": "Electronics & Communication Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 120,
+      "department": "Department of Electronics & Communication Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
+      "placementRate": 84,
+      "medianPackageLpa": 7.1,
+      "highestPackageLpa": 24,
+      "highlights": ["VLSI design lab with industry EDA tools", "Embedded systems and IoT electives", "Satellite communication ground station club"],
+      "routes": [
+        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 22000, "feePerYear": 110000 },
+        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 15000, "feePerYear": 210000 },
+        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 82, "feePerYear": 320000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 320000 }
+      ]
+    },
+    {
+      "code": "ME",
+      "name": "Mechanical Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 60,
+      "department": "Department of Mechanical Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
+      "placementRate": 72,
+      "medianPackageLpa": 5.4,
+      "highestPackageLpa": 14,
+      "highlights": ["EV powertrain and battery lab", "Formula Student team (Northgate Racing)", "Additive manufacturing centre"],
+      "routes": [
+        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 45000, "feePerYear": 110000 },
+        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 30000, "feePerYear": 190000 },
+        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 70, "feePerYear": 240000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 240000 }
+      ]
+    },
+    {
+      "code": "CV",
+      "name": "Civil Engineering",
+      "level": "UG",
+      "degree": "B.E.",
+      "durationYears": 4,
+      "intake": 60,
+      "department": "Department of Civil Engineering",
+      "minAggregate": 45,
+      "reservedMinAggregate": 40,
+      "subjects": "Physics and Mathematics compulsory, plus one of Chemistry, Computer Science, Electronics or Biology",
+      "placementRate": 68,
+      "medianPackageLpa": 5.0,
+      "highestPackageLpa": 12,
+      "highlights": ["Smart-city and sustainable infrastructure electives", "Material testing lab recognised for consultancy", "Site internships every summer"],
+      "routes": [
+        { "exam": "KCET", "quota": "Government", "cutoffType": "rank", "cutoff": 52000, "feePerYear": 110000 },
+        { "exam": "COMEDK", "quota": "COMEDK", "cutoffType": "rank", "cutoff": 35000, "feePerYear": 190000 },
+        { "exam": "JEE Main", "quota": "Management (JEE merit)", "cutoffType": "percentile", "cutoff": 65, "feePerYear": 220000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 220000 }
+      ]
+    },
+    {
+      "code": "MBA",
+      "name": "Master of Business Administration",
+      "level": "PG",
+      "degree": "MBA",
+      "durationYears": 2,
+      "intake": 120,
+      "department": "Northgate School of Management",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "Any bachelor's degree of at least 3 years",
+      "placementRate": 88,
+      "medianPackageLpa": 8.1,
+      "highestPackageLpa": 21,
+      "highlights": ["Dual specialisation (Finance, Marketing, HR, Business Analytics, Operations)", "Eight-week summer internship", "Live consulting projects with local MSMEs"],
+      "routes": [
+        { "exam": "PGCET", "quota": "Government", "cutoffType": "rank", "cutoff": 6500, "feePerYear": 85000 },
+        { "exam": "CAT", "quota": "Management (CAT/MAT merit)", "cutoffType": "percentile", "cutoff": 70, "feePerYear": 240000 },
+        { "exam": "MAT", "quota": "Management (CAT/MAT merit)", "cutoffType": "percentile", "cutoff": 80, "feePerYear": 240000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 240000 }
+      ]
+    },
+    {
+      "code": "MCA",
+      "name": "Master of Computer Applications",
+      "level": "PG",
+      "degree": "MCA",
+      "durationYears": 2,
+      "intake": 60,
+      "department": "Department of Computer Applications",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "BCA / B.Sc / B.Com / BA with Mathematics or Computer Science at 10+2 or degree level",
+      "placementRate": 86,
+      "medianPackageLpa": 6.5,
+      "highestPackageLpa": 18,
+      "highlights": ["Cloud-native application development track", "Six-month industry internship in final semester", "Bridge course for non-CS graduates"],
+      "routes": [
+        { "exam": "PGCET", "quota": "Government", "cutoffType": "rank", "cutoff": 4000, "feePerYear": 70000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 160000 }
+      ]
+    },
+    {
+      "code": "MTECH-CSE",
+      "name": "M.Tech in Computer Science & Engineering",
+      "level": "PG",
+      "degree": "M.Tech",
+      "durationYears": 2,
+      "intake": 18,
+      "department": "Department of Computer Science & Engineering",
+      "minAggregate": 50,
+      "reservedMinAggregate": 45,
+      "subjects": "B.E./B.Tech in CSE, ISE, AIML, IT or ECE",
+      "placementRate": 90,
+      "medianPackageLpa": 10.5,
+      "highestPackageLpa": 26,
+      "highlights": ["Research track with publication support", "Teaching assistantship for GATE-qualified students", "Access to the GPU research cluster"],
+      "routes": [
+        { "exam": "GATE", "quota": "GATE merit", "cutoffType": "score", "cutoff": 450, "feePerYear": 60000 },
+        { "exam": "PGCET", "quota": "Government", "cutoffType": "rank", "cutoff": 1500, "feePerYear": 60000 },
+        { "exam": "Management", "quota": "Management", "cutoffType": "none", "cutoff": null, "feePerYear": 120000 }
+      ]
+    }
+  ]
+}

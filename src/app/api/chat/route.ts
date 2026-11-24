@@ -19,11 +19,12 @@ import { friendlyLlmError, getModels, getVisionModel } from "@/lib/llm";
 import { buildInstructions, buildRewritePrompt, describeReadings } from "@/lib/prompts";
 import { type Attachment, readAttachment, readingQuery, validateAttachments } from "@/lib/reader";
 import type { ReadingFile } from "@/lib/reading";
+import { postsOnly, quotedAnswer, quotePrompt, verifyQuotes } from "@/lib/quotes";
 import { retrieve } from "@/lib/retrieval";
 import { factsFromReadings, factsFromTools, listMemory, memoryEnabled, type NewFact, saveFacts } from "@/lib/memory";
 import { getSessionId } from "@/lib/session";
 import { createTools } from "@/lib/tools";
-import { asksAboutCollege, handbookQuery, type WebSearchOutput, wantsWebSearch, webSearchEnabled } from "@/lib/websearch";
+import { asksAboutCollege, handbookQuery, plannedSearch, realName, searchWeb, type WebSearchOutput, wantsWebSearch, webSearchEnabled } from "@/lib/websearch";
 
 export const maxDuration = 60;
 
@@ -134,10 +135,14 @@ export async function POST(req: Request) {
     }
   }
 
-  // An explicit request to search the web is always carried out (see prepareStep),
+  // An explicit request to search the web is always carried out (below),
   // and the handbook is searched for the topic, not for the word "reddit".
   const searchRequested = webSearchEnabled() && !readings.length && (wantsWebSearch(question) || wantsWebSearch(rewritten));
+  const searchTopic = rewritten;
   if (searchRequested) rewritten = handbookQuery(rewritten);
+
+  // The app's name isn't in the handbook; the college's is.
+  rewritten = realName(rewritten);
 
   // Documents bring their own topic: a receipt should pull up the fee tables.
   if (readings.length) rewritten = [rewritten, ...readings.map(readingQuery)].join(" ").replace(/\s+/g, " ").trim().slice(0, 400);
@@ -172,7 +177,14 @@ export async function POST(req: Request) {
   };
   // Facts saved during this answer (by the remember tool, then from the other tools' inputs).
   const memoryChanges: NewFact[] = [];
+  // The user asked for a search: run it here, so it happens whatever the model would have done.
+  let searched: WebSearchOutput | { error: string } | null = null;
+  const search = searchRequested ? plannedSearch(question, searchTopic) : null;
+  if (search) {
+    searched = await searchWeb(search.query, search).catch((e: unknown) => ({ error: e instanceof Error ? e.message : "Web search failed." }));
+  }
   const tools = createTools({
+    webStart: searched && "results" in searched ? searched.results.length : 0,
     data,
     queryId,
     question,
@@ -194,10 +206,28 @@ export async function POST(req: Request) {
     execute: async ({ writer }) => {
       writer.write({ type: "start" });
       writer.write({ type: "data-evidence", id: `evidence-${queryId}`, data: evidence });
+      if (search && searched) {
+        const toolCallId = `search-${queryId}`;
+        writer.write({ type: "tool-input-available", toolCallId, toolName: "searchWeb", input: { query: search.query, sites: search.sites, official: search.official } });
+        writer.write({ type: "tool-output-available", toolCallId, output: searched });
+      }
       if (readings.length) writer.write({ type: "data-reading", id: `reading-${queryId}`, data: { files: readings } });
+      // Opinions from Reddit and the like: the model picks lines, code checks every word of them.
+      if (searched && "results" in searched && postsOnly(searched)) {
+        const { text } = await generateText({ model: models.main, prompt: quotePrompt(question, searched.results), temperature: 0, maxOutputTokens: 1200, providerOptions: LIGHT_REASONING });
+        const id = `quotes-${queryId}`;
+        writer.write({ type: "start-step" });
+        writer.write({ type: "text-start", id });
+        writer.write({ type: "text-delta", id, delta: quotedAnswer(searched.scope ?? "the web", verifyQuotes(text, searched.results)) });
+        writer.write({ type: "text-end", id });
+        writer.write({ type: "finish-step" });
+        retractGap(queryId);
+        writer.write({ type: "finish" });
+        return;
+      }
       const result = streamText({
         model: models.main,
-        instructions: buildInstructions({ persona, language, passages: retrieval.passages, confidence: retrieval.confidence, data, today, webSearch: webSearchEnabled(), attachments: readings, memory: remembered, canRemember: memoryOn }),
+        instructions: buildInstructions({ persona, language, passages: retrieval.passages, confidence: retrieval.confidence, data, today, webSearch: webSearchEnabled(), attachments: readings, memory: remembered, canRemember: memoryOn, searched }),
         messages: await convertToModelMessages(withoutFiles(messages), {
           tools,
           ignoreIncompleteToolCalls: true,
@@ -209,22 +239,15 @@ export async function POST(req: Request) {
         }),
         tools,
         stopWhen: isStepCount(5),
-        // Asked to search: the first step must search, and is sent only that tool (a
-        // third of the tokens, which matters on free per-minute limits). Afterwards a
-        // question about the outside world can't end in a handbook gap.
-        prepareStep: ({ stepNumber }) => {
-          if (!searchRequested) return {};
-          if (stepNumber === 0) return { activeTools: ["searchWeb"], toolChoice: { type: "tool", toolName: "searchWeb" } };
-          const names = Object.keys(tools) as (keyof typeof tools)[];
-          return { activeTools: asksAboutCollege(question) ? names : names.filter((n) => n !== "flagKnowledgeGap") };
-        },
+        // A question about the outside world can't end in a handbook gap.
+        activeTools: searchRequested && !asksAboutCollege(question) ? (Object.keys(tools) as (keyof typeof tools)[]).filter((n) => n !== "flagKnowledgeGap") : undefined,
         providerOptions: LIGHT_REASONING,
         // A question answered from the web (and not flagged by the model)
         // was about the outside world, not a hole in the handbook.
         onFinish: ({ steps }) => {
           const results = steps.flatMap((s) => s.toolResults);
-          const answeredFromWeb = results.some((r) => {
-            const out = r.toolName === "searchWeb" ? (r.output as Partial<WebSearchOutput>) : null;
+          const answeredFromWeb = [...results, { toolName: "searchWeb", output: searched }].some((r) => {
+            const out = r.toolName === "searchWeb" ? (r.output as Partial<WebSearchOutput> | null) : null;
             return !!out?.results?.length && !(out.aboutCollege && !out.collegeFound);
           });
           if (answeredFromWeb && !results.some((r) => r.toolName === "flagKnowledgeGap")) retractGap(queryId);

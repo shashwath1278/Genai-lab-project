@@ -1,12 +1,12 @@
-import { COLLEGE } from "./college";
+import { COLLEGE, COLLEGE_NAMES } from "./college";
 import { namedSites, OFFICIAL_DOMAINS, siteInfo, siteTier, type SiteTier } from "./sites";
 
 // Live web search (Tavily). It can look anywhere: one named site ("scan
 // reddit"), official exam and government sites, or the open web. Three things
 // are decided here in code rather than left to the model:
 //   - every result carries a trust tier: official, community (anyone can post) or web;
-//   - Northgate is fictional and its initials belong to real colleges, so each
-//     result is checked for the college's actual name, and the answer is told
+//   - other Ramaiah institutions share part of the name, so each result is
+//     checked for this college's actual name, and the answer is told
 //     when nothing found is about it;
 //   - an explicit request to search is recognised, so it can't be declined.
 
@@ -31,7 +31,7 @@ export type WebSearchOutput = {
   searchedAt: string;
   /** Where it looked: "Reddit", "official sites", "the web". */
   scope?: string;
-  /** The question was about Northgate itself… */
+  /** The question was about the college itself… */
   aboutCollege?: boolean;
   /** …and at least one result actually names it. */
   collegeFound?: boolean;
@@ -75,9 +75,26 @@ const ASKS = [
 /** The user explicitly asked for the web or a site. The answer must then search, not decline. */
 export const wantsWebSearch = (text: string) => ASKS.some((re) => re.test(text));
 
-/** Is this about Northgate itself (rather than exams, companies, the world)? */
+/** Is this about the college itself (rather than exams, companies, the world)? */
 export const asksAboutCollege = (text: string) =>
-  /\bnorthgate\b|\bngit\b|\b(?:this|our|the|your|my) (?:college|campus|institute|institution|university|hostel)\b|\bthe college'?s\b/i.test(text);
+  new RegExp(COLLEGE_NAMES.source, "i").test(text) ||
+  /\b(?:this|our|the|your|my) (?:college|campus|institute|institution|university|hostel)\b|\bthe college'?s\b|\bhere\b/i.test(text);
+
+/** What to search for when the user asked for a search: their topic, their sites. */
+export function plannedSearch(question: string, rewritten: string): { query: string; sites: string[]; official: boolean; aboutCollege: boolean } {
+  const aboutCollege = asksAboutCollege(question) || asksAboutCollege(rewritten);
+  const topic = handbookQuery(rewritten)
+    .replace(COLLEGE_NAMES, " ")
+    .replace(/\b(?:of|at|in|for|about)?\s*(?:this|our|the|your|my) (?:college|campus|institute|institution|university)\b|\b(?:at|in)?\s*\bhere\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return {
+    query: aboutCollege ? `Ramaiah Institute of Technology MSRIT ${topic}`.trim() : topic || rewritten,
+    sites: namedSites(question).map((s) => s.label),
+    official: /\bofficial\b/i.test(question),
+    aboutCollege,
+  };
+}
 
 /** Drops "scan reddit for…" so the handbook is searched for the topic itself. */
 export function handbookQuery(q: string): string {
@@ -140,8 +157,11 @@ const clip = (s: string, n: number) => {
   return clean.length > n ? `${clean.slice(0, n - 1).replace(/\s+\S*$/, "")}…` : clean;
 };
 
-/** The full name only: "NGIT" is also a real college elsewhere. */
-const namesCollege = (text: string) => text.toLowerCase().includes(COLLEGE.name.toLowerCase());
+/** MSRIT by name; "Ramaiah" alone could be one of its sister institutions. */
+const namesCollege = (text: string) => /\bmsrit\b|ramaiah\s+institute\s+of\s+tech/i.test(text);
+
+/** The app's own name means nothing to a search engine. */
+export const realName = (text: string) => text.replace(/\bnorthgate(?: institute of technology)?\b|\bngit\b/gi, COLLEGE.short);
 
 // --------------------------------------------------------------- searching
 
@@ -172,7 +192,7 @@ export async function searchWeb(
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        query: query.slice(0, 300),
+        query: realName(query).slice(0, 300),
         search_depth: "basic",
         topic: "general",
         max_results: 8,
@@ -201,7 +221,7 @@ export async function searchWeb(
         domain,
         site: siteInfo(domain).name,
         favicon: safeFavicon(r.favicon, domain),
-        snippet: clip(cleanSnippet(r.content ?? ""), 360),
+        snippet: clip(cleanSnippet(r.content ?? ""), 600),
         published: isoDay(r.published_date),
         tier: siteTier(domain),
       });
@@ -222,7 +242,7 @@ export async function searchWeb(
     searchedAt: new Date().toISOString(),
     scope: named.length ? named.map((s) => s.label).join(", ") : official ? "official sites" : "the web",
     aboutCollege,
-    collegeFound: results.some((r) => namesCollege(`${r.title} ${r.snippet}`)),
+    collegeFound: results.some((r) => r.domain.endsWith(COLLEGE.site) || namesCollege(`${r.title} ${r.snippet}`)),
     widened,
   };
 }
@@ -234,10 +254,15 @@ export function webNote(out: WebSearchOutput): string {
   if (!out.results.length) notes.push("No results. Tell the user you searched and found nothing, then answer from the handbook passages if they cover the topic.");
   else if (out.aboutCollege && !out.collegeFound) {
     notes.push(
-      `NONE of these results name ${COLLEGE.name} (initials such as NGIT belong to other, real colleges). Tell the user you searched ${out.scope} and found nothing about Northgate. Do not present any figure or opinion here as Northgate's. Then give what the handbook passages say on the topic.`,
+      `NONE of these results name ${COLLEGE.name} (other Ramaiah institutions are different colleges). Tell the user you searched ${out.scope} and found nothing about ${COLLEGE.short}. Do not present any figure or opinion here as ${COLLEGE.short}'s. Then give what the handbook passages say on the topic.`,
     );
   }
-  else if (!out.aboutCollege) notes.push("Report what these pages do say, with their [Wn], even when the exact thing asked isn't there yet (for example only last year's dates are up): say what is and isn't published and which page to watch. Don't send the user to a Northgate office for this.");
-  if (out.results.some((r) => r.tier === "community")) notes.push("Community posts are people's opinions: say so ('a Reddit user says…').");
+  else if (!out.aboutCollege) notes.push("Report what these pages do say, with their [Wn], even when the exact thing asked isn't there yet (for example only last year's dates are up): say what is and isn't published and which page to watch. Don't send the user to a college office for this.");
+  if (out.results.some((r) => r.tier === "community")) notes.push("Community posts are people's opinions: say so ('one Reddit post says…').");
+  if (out.results.length) {
+    notes.push(
+      "Attribute strictly: report only what a result's own text says, each point with its [Wn]. Never put anything from the passages into a web source's mouth, and never generalise ('many users', 'a common thread') beyond the texts here. If the texts don't really answer the question, say that and point to the linked pages.",
+    );
+  }
   return notes.join(" ");
 }

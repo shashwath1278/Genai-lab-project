@@ -44,24 +44,27 @@ export function createTools({
   question,
   today,
   onRemember,
+  webStart = 0,
 }: {
   data: CollegeData;
   queryId: number;
   question: string;
   today: string;
   /** Set when memory is on: saves a fact and returns whether it was new. */
+  /** Web results already shown in this answer (numbering continues from here). */
+  webStart?: number;
   onRemember?: (fact: NonNullable<ReturnType<typeof noteFact>>) => boolean;
 }) {
-  let webResults = 0; // W-numbers stay unique across several searches in one answer
+  let webResults = webStart; // W-numbers stay unique across several searches in one answer
 
   const web = {
     searchWeb: tool({
       description:
         "Search the live web, a named site (Reddit, X, Quora, YouTube, GitHub, LinkedIn, any domain) or official exam and government sites. Use it whenever the user asks to search, scan, browse or check the web or a site, and for anything outside the handbook: reviews and opinions, news, companies and salaries, careers, entrance exams, government schemes, Bengaluru, study resources.",
       inputSchema: z.object({
-        query: z.string().describe("Focused English query. Write 'Northgate Institute of Technology' in full when it's about this college."),
+        query: z.string().describe("Focused English query. Write 'Ramaiah Institute of Technology MSRIT' when it's about this college."),
         sites: z.array(z.string()).optional().describe("Only these sites, e.g. ['reddit'] or ['quora.com']."),
-        official: z.boolean().optional().describe("True for exam dates and procedures, government schemes, certificates, regulator rules."),
+        official: z.boolean().optional().describe("True for exam dates and procedures, government schemes, certificates, and the college's own website."),
         recent: z.enum(["day", "week", "month", "year"]).optional().describe("Only recent pages, for news."),
       }),
       execute: async ({ query, sites, official, recent }) => {
@@ -105,6 +108,31 @@ export function createTools({
         if (!fact || !onRemember || webResults > 0) return { saved: false };
         return { saved: onRemember(fact), label: fact.label, value: fact.value };
       },
+    }),
+  };
+
+  const map = {
+    showCampusMap: tool({
+      description:
+        "Show the campus map with a place highlighted and walking directions. Use for any 'where is ...', 'how do I get to ...', 'which building / room is ...' or 'campus map' question. Name places in plain words: 'examination section', 'girls hostel', 'Room A-102', 'placement cell'.",
+      inputSchema: z.object({
+        to: z.string().optional().describe("Where the user wants to go. Omit to show the whole campus."),
+        from: z.string().optional().describe("Where they are starting from, if they said. Defaults to the Main Gate."),
+      }),
+      execute: async ({ to, from }) => planCampusRoute({ to, from }),
+      // The model needs the words, not the map geometry.
+      toModelOutput: ({ output }) => ({
+        type: "json" as const,
+        value: {
+          destination: output.to && { name: output.to.name, whatIsThere: output.to.detail },
+          start: output.from?.name ?? null,
+          walk: output.route && `about ${output.route.distanceM} m, ${output.route.minutes} min`,
+          steps: output.route?.steps ?? [],
+          alreadyThere: output.sameBuilding,
+          notOnMap: output.unknown,
+          placesOnMap: output.unknown || !output.to ? output.known : undefined,
+        },
+      }),
     }),
   };
 
@@ -182,28 +210,7 @@ export function createTools({
       execute: async ({ program, exam }) => safe(() => buildAdmissionChecklist(data, { program, exam, today })),
     }),
 
-    showCampusMap: tool({
-      description:
-        "Show the campus map with a place highlighted and walking directions. Use for any 'where is ...', 'how do I get to ...', 'which building / room is ...' or 'campus map' question. Name places in plain words: 'examination section', 'girls hostel', 'Room A-102', 'placement cell'.",
-      inputSchema: z.object({
-        to: z.string().optional().describe("Where the user wants to go. Omit to show the whole campus."),
-        from: z.string().optional().describe("Where they are starting from, if they said. Defaults to the Main Gate."),
-      }),
-      execute: async ({ to, from }) => planCampusRoute({ to, from }),
-      // The model needs the words, not the map geometry.
-      toModelOutput: ({ output }) => ({
-        type: "json" as const,
-        value: {
-          destination: output.to && { name: output.to.name, whatIsThere: output.to.detail },
-          start: output.from?.name ?? null,
-          walk: output.route && `about ${output.route.distanceM} m, ${output.route.minutes} min`,
-          steps: output.route?.steps ?? [],
-          alreadyThere: output.sameBuilding,
-          notOnMap: output.unknown,
-          placesOnMap: output.unknown || !output.to ? output.known : undefined,
-        },
-      }),
-    }),
+    ...(data.campusMap ? map : ({} as Partial<typeof map>)),
 
     flagKnowledgeGap: tool({
       description:
