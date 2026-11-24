@@ -1,13 +1,15 @@
 import path from "node:path";
-import { env, pipeline, type FeatureExtractionPipeline } from "@huggingface/transformers";
+import type { FeatureExtractionPipeline } from "@huggingface/transformers";
 import { EMBEDDING_MODEL, QUERY_PREFIX } from "./embedding-config";
-
-env.cacheDir = path.join(process.cwd(), ".cache", "models");
+import { loadTransformers } from "./native";
 
 const g = globalThis as unknown as { __embedder?: Promise<FeatureExtractionPipeline> };
 
 function getEmbedder(): Promise<FeatureExtractionPipeline> {
   if (!g.__embedder) {
+    // Loaded on first use (or by the warm-up), so pages that never embed stay light.
+    const { env, pipeline } = loadTransformers();
+    env.cacheDir = path.join(process.cwd(), ".cache", "models");
     const loading = pipeline("feature-extraction", EMBEDDING_MODEL, { dtype: "q8" }) as Promise<FeatureExtractionPipeline>;
     // Don't cache a failed load (e.g. offline on first run); retry next call.
     loading.catch(() => {

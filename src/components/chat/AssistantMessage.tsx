@@ -4,26 +4,34 @@ import { ArrowBendDownRight, Check, Copy, PushPin, SpeakerHigh, SpeakerSlash, Th
 import { motion } from "motion/react";
 import { useState } from "react";
 import type { CopilotMessage, EvidenceData } from "@/lib/chat-types";
-import type { WebResult } from "@/lib/websearch";
+import type { WebResult, WebSearchOutput } from "@/lib/websearch";
 import { BrandMark } from "../art/Brand";
-import { ReadingCards } from "../cards/ReadingCard";
-import { MemoryNote } from "../memory/MemoryPanel";
+import dynamic from "next/dynamic";
+import { MemoryNote } from "../memory/MemoryNote";
 import { isToolPart, ToolPartView } from "../cards/ToolPartView";
 import { usePlan } from "../plan/PlanContext";
 import { SiteStack } from "../SiteLogo";
 import { CONFIDENCE, cx, IconButton } from "../ui";
-import { AnswerMarkdown } from "./AnswerMarkdown";
 import { speakableText } from "./speech";
+
+// The markdown renderer and document cards aren't needed until there's an answer.
+const loadMarkdown = () => import("./AnswerMarkdown").then((m) => m.AnswerMarkdown);
+const AnswerMarkdown = dynamic(loadMarkdown);
+const ReadingCards = dynamic(() => import("../cards/ReadingCard").then((m) => m.ReadingCards));
+/** Fetch the renderer while the user is still reading or typing. */
+export const preloadAnswer = () => void loadMarkdown();
 
 export function getEvidence(message: CopilotMessage): EvidenceData | undefined {
   const part = message.parts.find((p) => p.type === "data-evidence");
   return part && "data" in part ? (part.data as EvidenceData) : undefined;
 }
 
-/** Official-site results the answer may cite as [W1]. */
+/** Web results the answer may cite as [W1]. */
 export function getWebResults(message: CopilotMessage): WebResult[] {
   return message.parts.flatMap((p) =>
-    p.type === "tool-searchOfficialWeb" && p.state === "output-available" && p.output && "results" in p.output ? p.output.results : [],
+    ["tool-searchWeb", "tool-searchOfficialWeb"].includes(p.type) && "state" in p && p.state === "output-available" && p.output && "results" in (p.output as object)
+      ? (p.output as WebSearchOutput).results
+      : [],
   );
 }
 

@@ -37,7 +37,7 @@ Everything except the LLM call runs on your machine. Embeddings are computed loc
   - **Your control:** the Memory tab lists every fact with where it came from. You can delete any of them, forget everything, or switch memory off.
   - **History:** conversations are saved automatically and can be reopened from the same tab, with attachments kept by name only.
 - **Campus map with walking directions.** "Where is the Examination Section?" brings up a hand-drawn campus map in the site's style, zoomed to the route, plus turn-by-turn steps ("At Jacaranda Circle, turn left onto Central Walk…"). Routes come from Dijkstra over a walkway graph, not from the LLM. The same data generates a "Campus Map and Directions" document, so text answers and the map agree.
-- **Official-site web search (optional).** Northgate is fictional, but the world around it isn't: KCET and COMEDK schedules, government scholarships, certificates. With a Tavily key set, the assistant can search, limited to an allowlist of official domains (`gov.in`, `nic.in`, NTA, COMEDK, AICTE, UGC…). Results are filtered again on our side and shown on a separate "Beyond the handbook" card with `[W1]` citations. The model may never use them for Northgate's own facts, and questions answered this way aren't filed as handbook gaps.
+- **Live web search (optional, with a Tavily key).** "Scan Reddit for…", "what does Quora say about…", "check the official KEA site": it searches the named site, official exam and government sites, or the open web. An explicit request to search is recognised in code and always carried out; the model can't decline it. Results show on a "From the web" card with `[W1]` citations and a trust tag (Official, Community). Northgate is fictional and its initials belong to real colleges, so each result is checked for the college's full name: when none has it, the card and the answer say so, and the handbook's own figures are given instead of another college's.
 
   Every web source shows its site's logo, the way search answers show favicons. Platforms like Reddit, X, GitHub and YouTube get their own marks (Phosphor brand icons), other sites their favicon, and government sites without one a government glyph. The logos appear on the card, as the inline citation chips, as a stacked "N web sources" button under the answer and in a "From the web" section of the Sources panel. The logo code handles any site, so widening the domain allowlist needs no UI work.
 - **Provider fallback.** With both keys set, Gemini answers first. When a model hits a rate limit or quota, the next one takes over: Groq's `gpt-oss-120b`, then its smaller `gpt-oss-20b` as a last resort. A model is skipped for 30 minutes after a daily quota and 20 seconds after a per-minute limit; limits are per model, so cooldowns are too. Free tiers are small: the Gemini key this was built with allowed 20 requests a day, and Groq allows 200,000 tokens a day per model (roughly 20-30 answers).
@@ -89,12 +89,13 @@ npm run dev                     # seeds the database on first run, then http://l
 
 | Script | What it does |
 |---|---|
-| `npm run dev` | Dev server (webpack, see the Windows note below) |
+| `npm run dev` | Dev server (Turbopack) |
 | `npm run seed` | Rebuild the knowledge base from `data/`. Add `-- --fresh` to also wipe query logs, gaps and plans |
 | `npm test` | Unit tests, including the chat route end to end with a scripted LLM |
 | `npm run test:e2e` | Browser tests in Chrome against a production build with its own database, using the real LLM |
 | `npm run eval` | Retrieval benchmark: keyword vs semantic vs hybrid. Needs no API key |
 | `npm run eval:answers` | Answer-quality benchmark against a running server (uses the real LLM) |
+| `npm run fast` | Build once and run the production app: by far the fastest to use or demo |
 | `npm run build` / `npm start` | Production build / server |
 
 ## How a question is answered
@@ -131,7 +132,7 @@ On the six off-corpus questions, the confidence threshold flags 4 as low. "Swimm
 
 ## Testing
 
-- **Unit tests** (`npm test`, Vitest, 129 tests):
+- **Unit tests** (`npm test`, Vitest, 163 tests):
   - chunker, calculators, retrieval fusion, gap clustering, calendar export and formatting (including the pre-written rupee figures the model is given)
   - campus routing and place matching, the official-domain allowlist, snippet cleaning, site names for logos, reading parsing, the PCM aggregate and the fee-receipt audit
   - memory: facts from tool inputs and readings, the store (changes only, capped notes, per-browser, off switch) and chat history (attachments by name, no cross-browser access)
@@ -173,11 +174,9 @@ tests/                unit tests        e2e/      Playwright browser tests
 
 To use a real college, replace the files in `data/corpus` and `data/structured` (same shapes), rename it in `src/lib/college.ts`, and run `npm run seed -- --fresh`.
 
-## Windows note: why `--webpack`
+## Windows note: native packages
 
-Next.js 16 builds with Turbopack by default. For native packages like `better-sqlite3` and `sqlite-vec`, Turbopack creates symlinks or directory junctions inside `.next/node_modules`. On the drive this project was built on, Windows refuses to create junctions ("The file or directory is corrupted and unreadable", os error 1392), and that drive reports a "Warning" health status. So `dev` and `build` use webpack, which loads those packages with a plain `require`.
-
-On a healthy drive, `npm run dev:turbo` uses Turbopack. Tailwind runs through PostCSS, so both bundlers work.
+Turbopack links native packages with directory junctions, which some drives refuse (`os error 1392`). `src/lib/native.ts` loads SQLite, sqlite-vec and the embedding runtime through Node directly, so the dev server runs on those drives too. `npm run dev:webpack` remains as a fallback.
 
 ## Stack
 

@@ -37,16 +37,25 @@ test("fee receipt photo: every line checked against the official fees", async ({
   await expect(lastAnswer(page)).not.toContainText("Not in the handbook yet"); // not filed as a knowledge gap
 });
 
-test("official-site search for things outside the handbook", async ({ page, request }) => {
+test("web search: official sites on request", async ({ page, request }) => {
   const status = await (await request.get("/api/status")).json();
   test.skip(!status.webSearch, "Set TAVILY_API_KEY to run the web search journey.");
   await page.goto("/chat");
   await ask(page, "When is the KCET 2027 entrance exam? Check the official KEA site.");
-  const card = lastAnswer(page).locator("section").filter({ hasText: "Beyond the handbook" });
+  const card = lastAnswer(page).locator("section").filter({ hasText: "From the web" });
   await expect(card).toBeVisible();
   for (const href of await card.locator("a[href^=http]").evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).hostname))) {
     expect(href).toMatch(/(^|\.)(gov\.in|nic\.in|nta\.ac\.in|comedk\.org|aicte-india\.org|ugc\.ac\.in|nirfindia\.org|iimcat\.ac\.in|aima\.in)$/);
   }
+});
+
+test("web search: a request to scan Reddit is carried out", async ({ page, request }) => {
+  const status = await (await request.get("/api/status")).json();
+  test.skip(!status.webSearch, "Set TAVILY_API_KEY to run the web search journey.");
+  await page.goto("/chat");
+  await ask(page, "scan reddit for last year placements of this college");
+  await expect(lastAnswer(page).locator("section").filter({ hasText: "From the web" })).toContainText("Reddit");
+  await expect(lastAnswer(page)).toContainText("87"); // the handbook's own figure is still given
 });
 
 test("memory: details from one chat carry into the next, and chats can be reopened", async ({ page }) => {

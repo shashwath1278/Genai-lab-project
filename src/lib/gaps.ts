@@ -161,7 +161,7 @@ export function setGapStatus(clusterId: number, status: "resolved" | "dismissed"
 
 /**
  * Undo the automatic low-confidence gap for a question that was about the
- * world outside Northgate and was answered from official sites (KCET dates,
+ * world outside Northgate and was answered from the web (KCET dates,
  * a government scholarship). The handbook isn't meant to cover those, so they
  * shouldn't sit on the staff gap list. Gaps the model flagged stay.
  */

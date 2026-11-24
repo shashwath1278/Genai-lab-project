@@ -91,17 +91,17 @@ function Hero() {
           Northgate Institute of Technology · Bengaluru
         </p>
         <h1 className="mt-5 font-display text-[56px] leading-[0.95] tracking-tight text-ink sm:text-[80px] lg:text-[92px]">
-          <SplitText text="Ask the college." tag="span" textAlign="left" trigger="load" splitType="words" delay={90} duration={0.9} className="block" />
+          <SplitText text="Ask the college." tag="span" textAlign="left" trigger="load" splitType="words" delay={50} duration={0.6} className="block" />
           <SplitText
             text="Get the receipts."
             tag="span"
             textAlign="left"
             trigger="load"
             splitType="words"
-            delay={90}
-            duration={0.9}
+            delay={50}
+            duration={0.6}
             from={{ opacity: 0, y: 40 }}
-            to={{ opacity: 1, y: 0, delay: 0.35 }}
+            to={{ opacity: 1, y: 0, delay: 0.15 }}
             className="block italic text-accent-text"
           />
         </h1>
@@ -109,11 +109,11 @@ function Hero() {
           className="mt-7 max-w-md text-[17px] leading-relaxed text-ink-2"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
         >
           Admissions, fees, hostel and exams, answered from the official handbook, with a source for every line.
         </motion.p>
-        <motion.div className="mt-9 flex flex-wrap gap-3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75, duration: 0.6 }}>
+        <motion.div className="mt-9 flex flex-wrap gap-3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }}>
           <Magnetic>
             <Link href="/chat" className={primaryBtn}>
               Ask a question <ArrowRight size={17} weight="bold" />

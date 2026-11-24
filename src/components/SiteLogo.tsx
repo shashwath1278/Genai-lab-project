@@ -22,7 +22,7 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
-import { type Brand, siteInfo } from "@/lib/sites";
+import { type Brand, siteInfo, siteTier } from "@/lib/sites";
 import { cx } from "./ui";
 
 // Source logos, like the favicons beside a search answer: a platform's own mark
@@ -74,6 +74,17 @@ export function SiteLogo({ domain, favicon, size = 18, className }: { domain: st
   return (
     <span className={cx(box, site.kind === "gov" ? "bg-laterite-soft text-laterite" : "bg-accent-soft text-accent-text")} style={style} title={site.name}>
       {Glyph ? <Glyph size={Math.round(size * 0.7)} weight="duotone" aria-hidden /> : <span className="font-semibold leading-none" style={{ fontSize: size * 0.55 }}>{site.name.charAt(0)}</span>}
+    </span>
+  );
+}
+
+/** How far to trust a source: official, or a place where anyone can post. */
+export function TierTag({ domain }: { domain: string }) {
+  const tier = siteTier(domain);
+  if (tier === "web") return null;
+  return (
+    <span className={cx("ml-auto rounded-full px-2 py-0.5 text-[10.5px] font-medium", tier === "official" ? "bg-leaf-soft text-leaf" : "bg-marigold-soft text-ink-2")}>
+      {tier === "official" ? "Official" : "Community"}
     </span>
   );
 }

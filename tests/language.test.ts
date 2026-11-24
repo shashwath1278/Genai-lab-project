@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hasNonAscii, looksHinglish } from "../src/lib/language";
+import { dependsOnHistory, hasNonAscii, looksHinglish } from "../src/lib/language";
 
 describe("looksHinglish", () => {
   it("spots romanized Hindi questions", () => {
@@ -15,6 +15,15 @@ describe("looksHinglish", () => {
     // a single Hindi-looking token is not enough
     expect(looksHinglish("Can I bring my kitna?")).toBe(false);
   });
+});
+
+describe("dependsOnHistory", () => {
+  it.each(["And the hostel?", "what about ECE", "How much does it cost per year?", "Is that fee refundable after I join?", "Which one is cheaper for four years?"])("needs the conversation: %s", (q) =>
+    expect(dependsOnHistory(q)).toBe(true),
+  );
+  it.each(["Is there a gym on the campus?", "What is the hostel fee for a triple room?", "scan reddit for last year placements of this college", "Last date to pay the exam fee for BE"])("stands alone: %s", (q) =>
+    expect(dependsOnHistory(q)).toBe(false),
+  );
 });
 
 describe("hasNonAscii", () => {

@@ -1,10 +1,9 @@
 "use client";
 
 import { ArrowUpRight, Brain, CalendarBlank, Columns, GraduationCap, Paperclip, Wallet, type Icon } from "@phosphor-icons/react";
-import { motion } from "motion/react";
 import { getPersona, type PersonaId } from "@/lib/college";
 import { SprigSpot } from "../art/spots";
-import { factText } from "../memory/MemoryPanel";
+import { factText } from "../memory/useMemory";
 
 const TITLE: Record<PersonaId, [string, string]> = {
   prospective: ["Find your way", "into Northgate."],
@@ -20,10 +19,8 @@ const SHORTCUTS: { icon: Icon; label: string; template: string; tint: string }[]
   { icon: CalendarBlank, label: "Key dates", template: "What are the upcoming important dates?", tint: "var(--laterite-soft)" },
 ];
 
-const item = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
-};
+// A CSS entrance, so the page is readable before any JavaScript has run.
+const step = (n: number) => ({ animationDelay: `${n * 35}ms` });
 
 export function EmptyState({
   persona,
@@ -43,25 +40,17 @@ export function EmptyState({
   const p = getPersona(persona);
   const [plain, accent] = TITLE[persona];
   return (
-    <motion.div
-      key={persona}
-      className="relative mx-auto flex min-h-[58vh] max-w-2xl flex-col justify-center"
-      initial="hidden"
-      animate="show"
-      variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-    >
-      <motion.div variants={item} className="pointer-events-none absolute -right-4 top-4 hidden h-32 w-44 rotate-6 sm:block">
+    <div key={persona} className="relative mx-auto flex min-h-[58vh] max-w-2xl flex-col justify-center">
+      <div className="rise pointer-events-none absolute -right-4 top-4 hidden h-32 w-44 rotate-6 sm:block" style={step(1)}>
         <SprigSpot className="size-full" />
-      </motion.div>
-      <motion.p variants={item} className="eyebrow">
-        Ask Northgate
-      </motion.p>
-      <motion.h1 variants={item} className="mt-3 font-display text-[44px] leading-[0.98] tracking-tight text-ink sm:text-[58px]">
+      </div>
+      <p className="eyebrow">Ask Northgate</p>
+      <h1 className="rise mt-3 font-display text-[44px] leading-[0.98] tracking-tight text-ink sm:text-[58px]">
         {plain} <em className="text-accent-text">{accent}</em>
-      </motion.h1>
+      </h1>
 
       {remembered.length > 0 && (
-        <motion.div variants={item} className="mt-5 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-2">
+        <div className="rise mt-5 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-2">
           <Brain size={15} weight="duotone" className="text-accent-text" aria-hidden />
           <span>Welcome back. I remember</span>
           {remembered.slice(0, 4).map((f) => (
@@ -74,10 +63,10 @@ export function EmptyState({
               {remembered.length > 4 ? `+${remembered.length - 4} more` : "Manage"}
             </button>
           )}
-        </motion.div>
+        </div>
       )}
 
-      <motion.div variants={item} className="mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+      <div style={step(1)} className="rise mt-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {SHORTCUTS.map((s) => (
           <button
             key={s.label}
@@ -91,9 +80,9 @@ export function EmptyState({
             {s.label}
           </button>
         ))}
-      </motion.div>
+      </div>
 
-      <motion.ul variants={item} className="-mx-2 mt-7 space-y-0.5">
+      <ul style={step(2)} className="rise -mx-2 mt-7 space-y-0.5">
         {p.starters.map((q) => (
           <li key={q}>
             <button
@@ -106,15 +95,15 @@ export function EmptyState({
             </button>
           </li>
         ))}
-      </motion.ul>
+      </ul>
 
-      <motion.p variants={item} className="mt-6 flex items-start gap-2 text-[13px] leading-snug text-muted">
+      <p style={step(3)} className="rise mt-6 flex items-start gap-2 text-[13px] leading-snug text-muted">
         <Paperclip size={15} className="mt-px shrink-0 text-accent-text" aria-hidden />
         <span>
           Attach a photo of a marks card, rank card, fee receipt or notice and I&apos;ll read it for you.
-          {webSearch && " For entrance exams and government schemes, I can also check the official sites."}
+          {webSearch && " I can also search the web: try \"scan Reddit for hostel life tips\" or \"check the official KEA site\"."}
         </span>
-      </motion.p>
-    </motion.div>
+      </p>
+    </div>
   );
 }

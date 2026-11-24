@@ -4,21 +4,25 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type FileUIPart } from "ai";
 import { ArrowCounterClockwise, BookOpen, Brain, ClipboardText, FilePdf, ImageSquare, NotePencil, Warning, X } from "@phosphor-icons/react";
 import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { CopilotMessage } from "@/lib/chat-types";
 import { getLanguage, LANGUAGES, PERSONAS, type LanguageId, type PersonaId } from "@/lib/college";
 import { EvidencePanel } from "../evidence/EvidencePanel";
-import { MemoryPanel, useMemory } from "../memory/MemoryPanel";
-import { PlanBoard } from "../plan/PlanBoard";
+import { useMemory } from "../memory/useMemory";
 import { PlanProvider, usePlan } from "../plan/PlanContext";
 import { Button, cx } from "../ui";
-import { AssistantMessage, getEvidence, getWebResults, messageText, TypingDots } from "./AssistantMessage";
+import { AssistantMessage, getEvidence, getWebResults, messageText, preloadAnswer, TypingDots } from "./AssistantMessage";
 import { withoutOldAttachments } from "./attachments";
 import { Composer } from "./Composer";
 import { EmptyState } from "./EmptyState";
 import { Header, type Status } from "./Header";
 import { speak, stopSpeaking } from "./speech";
+
+// Panels behind a tab load when they're first opened.
+const panelLoading = () => <p className="p-4 text-[13px] text-muted">Loading…</p>;
+const PlanBoard = dynamic(() => import("../plan/PlanBoard").then((m) => m.PlanBoard), { loading: panelLoading });
+const MemoryPanel = dynamic(() => import("../memory/MemoryPanel").then((m) => m.MemoryPanel), { loading: panelLoading });
 
 // Earlier attachments were read already: only the newest message carries files.
 const transport = new DefaultChatTransport<CopilotMessage>({
@@ -68,6 +72,11 @@ const LANGUAGE_IDS = LANGUAGES.map((l) => l.id);
 export type PanelTab = "evidence" | "plan" | "memory";
 
 const newChatId = () => `chat-${crypto.randomUUID()}`;
+/** The id in the server-rendered page; hydration swaps in a real one, made once per page load. */
+const FIRST_ID = "chat-first";
+let browserId: string | undefined;
+const firstChatId = () => (browserId ??= newChatId());
+const never = () => () => {};
 
 function readError(error: Error | undefined): string | null {
   if (!error) return null;
@@ -92,8 +101,10 @@ function WorkspaceInner() {
   const [persona, setPersona] = useStoredChoice<PersonaId>("ng-persona", "prospective", PERSONA_IDS);
   const [language, setLanguage] = useStoredChoice<LanguageId>("ng-language", "en", LANGUAGE_IDS);
   // Each conversation has an id; switching it (new chat, or one from history) gives useChat a fresh thread.
-  const [thread, setThread] = useState<{ id: string; messages: CopilotMessage[] }>(() => ({ id: newChatId(), messages: [] }));
-  const { messages, sendMessage, status, error, stop, regenerate, clearError } = useChat<CopilotMessage>({ id: thread.id, messages: thread.messages, transport });
+  const [thread, setThread] = useState<{ id: string | null; messages: CopilotMessage[] }>({ id: null, messages: [] });
+  const firstId = useSyncExternalStore(never, firstChatId, () => FIRST_ID);
+  const chatId = thread.id ?? firstId;
+  const { messages, sendMessage, status, error, stop, regenerate, clearError } = useChat<CopilotMessage>({ id: chatId, messages: thread.messages, transport });
   const memory = useMemory();
   const plan = usePlan();
 
@@ -110,8 +121,12 @@ function WorkspaceInner() {
 
   const busy = status === "submitted" || status === "streaming";
 
-  // Refresh status (LLM, open-gap count), memory and saved chats on load and after each answer.
-  const refreshMemory = memory.refresh;
+  // Refresh status (LLM, open-gap count) and memory on load and after each answer;
+  // the list of saved chats only while the Memory tab is open.
+  const { refresh: refreshMemory, refreshChats } = memory;
+  useEffect(() => {
+    if (!busy && tab === "memory") refreshChats();
+  }, [busy, tab, refreshChats]);
   useEffect(() => {
     if (busy) return;
     fetch("/api/status")
@@ -129,7 +144,13 @@ function WorkspaceInner() {
     if (nearBottom || status === "submitted") el.scrollTo({ top: el.scrollHeight, behavior: status === "streaming" ? "auto" : "smooth" });
   }, [messages, status]);
 
-  useEffect(() => () => stopSpeaking(), []);
+  useEffect(() => {
+    const idle = setTimeout(preloadAnswer, 1500);
+    return () => {
+      clearTimeout(idle);
+      stopSpeaking();
+    };
+  }, []);
 
   useEffect(() => {
     if (!drawer) return;
@@ -140,19 +161,17 @@ function WorkspaceInner() {
 
   // Deep links from the landing page: /chat?persona=parent&q=... sets the
   // persona and asks the question once, then tidies the URL.
-  const params = useSearchParams();
-  const router = useRouter();
-  const deepLinked = useRef(false);
   useEffect(() => {
-    if (deepLinked.current) return;
-    deepLinked.current = true;
+    if (chatId === FIRST_ID) return;
+    const params = new URLSearchParams(window.location.search);
     const p = params.get("persona") as PersonaId | null;
     const q = params.get("q")?.trim();
     const linkedPersona = p && PERSONA_IDS.includes(p) ? p : null;
     if (linkedPersona) setPersona(linkedPersona);
     if (q) sendMessage({ text: q }, { body: { persona: linkedPersona ?? persona, language } });
-    if (p || q) router.replace("/chat", { scroll: false });
-  }, [params, router, setPersona, sendMessage, persona, language]);
+    // Cleared at once, so the question can't be sent twice.
+    if (p || q) window.history.replaceState(null, "", "/chat");
+  }, [chatId, setPersona, sendMessage, persona, language]);
 
   const hasSources = (m: CopilotMessage) => m.role === "assistant" && (!!getEvidence(m) || getWebResults(m).length > 0);
   const withEvidence = messages.filter(hasSources);
@@ -218,7 +237,7 @@ function WorkspaceInner() {
 
   // Reopen a saved conversation and carry on from where it stopped.
   const openChat = (id: string) => {
-    if (id === thread.id) return setDrawer(false);
+    if (id === chatId) return setDrawer(false);
     fetch(`/api/chats?id=${encodeURIComponent(id)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(({ chat }: { chat: { id: string; messages: CopilotMessage[] } }) => {
@@ -226,7 +245,7 @@ function WorkspaceInner() {
         setThread({ id: chat.id, messages: chat.messages });
         setDrawer(false);
       })
-      .catch(() => memory.refresh());
+      .catch(() => memory.refreshChats());
   };
 
   const errorText = readError(error);
@@ -237,7 +256,7 @@ function WorkspaceInner() {
       ) : tab === "plan" ? (
         <PlanBoard />
       ) : (
-        <MemoryPanel memory={memory} currentChatId={thread.id} onOpenChat={openChat} />
+        <MemoryPanel memory={memory} currentChatId={chatId} onOpenChat={openChat} />
       )}
     </SidePanel>
   );

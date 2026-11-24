@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-import Database from "better-sqlite3";
-import * as sqliteVec from "sqlite-vec";
+import type Database from "better-sqlite3";
+import { loadBetterSqlite, loadSqliteVec } from "./native";
 import { SCHEMA } from "./schema";
 
 export type DB = Database.Database;
@@ -13,10 +13,10 @@ const g = globalThis as unknown as { __collegeDb?: DB; __collegeDbSchema?: strin
 
 export function openDb(file = DB_PATH): DB {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  const db = new Database(file);
+  const db: DB = new (loadBetterSqlite())(file);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
-  sqliteVec.load(db);
+  loadSqliteVec().load(db);
   db.exec(SCHEMA);
   return db;
 }

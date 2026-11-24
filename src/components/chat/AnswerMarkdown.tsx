@@ -28,7 +28,7 @@ function WebChip({ result }: { result: WebResult }) {
         target="_blank"
         rel="noreferrer noopener"
         data-cite
-        aria-label={`Official source ${result.id}: ${result.title}, ${result.domain} (opens the site)`}
+        aria-label={`Web source ${result.id}: ${result.title}, ${result.domain} (opens the site)`}
         className="mx-0.5 inline-flex h-5 max-w-36 -translate-y-px items-center gap-1 rounded-full border border-line bg-surface py-0 pl-0.5 pr-2 text-[11.5px] font-medium text-ink-2 no-underline transition-colors hover:border-accent hover:text-accent-text"
       >
         <SiteLogo domain={result.domain} favicon={result.favicon} size={15} className="rounded-full border-0" />

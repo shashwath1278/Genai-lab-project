@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { cleanSnippet, isoDay, officialDomain, searchOfficialWeb } from "../src/lib/websearch";
+import { namedSites, siteTier } from "../src/lib/sites";
+import { asksAboutCollege, cleanSnippet, handbookQuery, isoDay, searchWeb, wantsWebSearch, webHost, webNote } from "../src/lib/websearch";
 
 describe("result text", () => {
   it("strips markdown and decoration from page snippets", () => {
@@ -16,53 +17,126 @@ describe("result text", () => {
   });
 });
 
-describe("officialDomain", () => {
+describe("recognising a request to search", () => {
   it.each([
-    ["https://cetonline.karnataka.gov.in/kea/", "cetonline.karnataka.gov.in"],
-    ["https://kea.kar.nic.in/", "kea.kar.nic.in"],
-    ["https://www.comedk.org/uget", "comedk.org"],
-    ["https://jeemain.nta.ac.in/", "jeemain.nta.ac.in"],
-    ["https://scholarships.gov.in/", "scholarships.gov.in"],
-    ["https://gate2027.iitr.ac.in/", "gate2027.iitr.ac.in"],
-  ])("accepts %s", (url, host) => expect(officialDomain(url)).toBe(host));
+    "scan reddit for last year placements of this college",
+    "search the web for AI and ML salaries",
+    "what does Quora say about hostel life in Bengaluru?",
+    "find YouTube videos on data structures",
+    "check the official KEA site for the KCET date",
+    "look up Cobalt Systems on LinkedIn",
+    "Search for scholarships for girls in Karnataka",
+    "any reddit threads on COMEDK counselling?",
+    "google it",
+    "what are people saying on the internet about KCET 2027",
+    "browse news about engineering admissions",
+  ])("acts on: %s", (q) => expect(wantsWebSearch(q)).toBe(true));
 
   it.each([
-    "https://shiksha.com/kcet-2027",
-    "https://gov.in.example.com/",
-    "https://notgov.in/",
-    "https://somecollege.ac.in/",
-    "javascript:alert(1)",
-    "not a url",
-  ])("rejects %s", (url) => expect(officialDomain(url)).toBeNull());
+    "Is there a web development club?",
+    "Can I pay the fees online?",
+    "How is the internet speed in the hostel?",
+    "What is the medium of instruction?",
+    "Where is the Examination Section?",
+    "What will CSE cost for 4 years?",
+    "Find the last date to pay the exam fee",
+    "Check if I am eligible for AIML with rank 12000",
+  ])("leaves alone: %s", (q) => expect(wantsWebSearch(q)).toBe(false));
+
+  it("knows which sites were named", () => {
+    expect(namedSites("scan reddit and Quora").map((s) => s.label)).toEqual(["Reddit", "Quora"]);
+    expect(namedSites("posts on X about KCET").map((s) => s.label)).toEqual(["X"]);
+    expect(namedSites("solve for x in maths")).toEqual([]);
+  });
+
+  it("searches the handbook for the topic, not the website", () => {
+    expect(handbookQuery("scan reddit for last year placements of this college")).toBe("last year placements of this college");
+    expect(handbookQuery("Northgate Institute of Technology last year placement statistics and student reviews on Reddit")).toBe(
+      "Northgate Institute of Technology last year placement statistics and student reviews",
+    );
+    expect(handbookQuery("search the web")).toBe("search the web"); // nothing left: keep it
+  });
+
+  it("knows when the college itself is meant", () => {
+    expect(asksAboutCollege("placements of this college")).toBe(true);
+    expect(asksAboutCollege("Northgate hostel reviews")).toBe(true);
+    expect(asksAboutCollege("KCET 2027 exam date")).toBe(false);
+  });
 });
 
-describe("searchOfficialWeb", () => {
-  const response = (results: object[], status = 200) =>
-    vi.fn(async () => new Response(JSON.stringify({ results }), { status })) as unknown as typeof fetch;
+describe("where results come from", () => {
+  it.each([
+    ["cetonline.karnataka.gov.in", "official"],
+    ["gate2027.iitr.ac.in", "official"],
+    ["reddit.com", "community"],
+    ["old.reddit.com", "community"],
+    ["x.com", "community"],
+    ["thehindu.com", "web"],
+    ["gov.in.example.com", "web"],
+    ["notgov.in", "web"],
+  ])("%s is %s", (domain, tier) => expect(siteTier(domain)).toBe(tier));
 
-  it("keeps official results only, numbered from startAt", async () => {
-    const fetchImpl = response([
-      { title: "KCET 2027 schedule", url: "https://cetonline.karnataka.gov.in/kea/kcet2027", content: "  Exam on 18 April.  ", published_date: "2026-11-02T10:00:00Z" },
-      { title: "KCET 2027: all you need to know", url: "https://coaching.example.com/kcet", content: "Unofficial blog" },
-      { title: "COMEDK UGET 2027", url: "https://www.comedk.org/uget", content: "Applications open in February." },
-    ]);
-    const out = await searchOfficialWeb("KCET 2027 exam date", { fetchImpl, apiKey: "test", startAt: 3 });
-    expect(out.results.map((r) => [r.id, r.domain])).toEqual([
-      ["W3", "cetonline.karnataka.gov.in"],
-      ["W4", "comedk.org"],
-    ]);
-    expect(out.results[0]).toMatchObject({ snippet: "Exam on 18 April.", published: "2026-11-02", site: "KEA", favicon: null });
-    expect(out.results[1].site).toBe("COMEDK");
+  it("only accepts plain web links", () => {
+    expect(webHost("https://www.reddit.com/r/x")).toBe("reddit.com");
+    expect(webHost("javascript:alert(1)")).toBeNull();
+    expect(webHost("not a url")).toBeNull();
+  });
+});
 
-    const [, init] = (fetchImpl as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls[0];
-    const body = JSON.parse(String(init.body));
-    expect(body).toMatchObject({ search_depth: "basic", include_favicon: true, include_domains: expect.arrayContaining(["gov.in", "nic.in"]) });
-    expect((init.headers as Record<string, string>).authorization).toBe("Bearer test");
+describe("searchWeb", () => {
+  type Call = [string, RequestInit];
+  const fake = (...pages: object[][]) => {
+    const fn = vi.fn(async () => new Response(JSON.stringify({ results: pages.length > 1 ? pages.shift() : pages[0] })));
+    const body = (i = 0) => JSON.parse(String((fn.mock.calls as unknown as Call[])[i][1].body));
+    return { fetchImpl: fn as unknown as typeof fetch, body, calls: () => fn.mock.calls.length };
+  };
+
+  it("keeps to a named site, numbers results and tags them", async () => {
+    const f = fake([
+      { title: "Placements thread", url: "https://www.reddit.com/r/Btechtards/1", content: "NGIT placements were good", published_date: "Mon, 10 Nov 2026 08:00:00 GMT", favicon: "https://www.reddit.com/favicon.ico" },
+      { title: "Sneaky", url: "https://blog.example.com/reddit", content: "not reddit" },
+    ]);
+    const out = await searchWeb("Northgate Institute of Technology placements", { sites: ["reddit"], aboutCollege: true, fetchImpl: f.fetchImpl, apiKey: "k", startAt: 3 });
+    expect(f.body().include_domains).toEqual(["reddit.com"]);
+    expect(out.results).toEqual([expect.objectContaining({ id: "W3", site: "Reddit", tier: "community", published: "2026-11-10", favicon: "https://www.reddit.com/favicon.ico" })]);
+    // "NGIT" alone is another college, so nothing here is about Northgate.
+    expect(out).toMatchObject({ scope: "Reddit", aboutCollege: true, collegeFound: false });
+    expect(webNote(out)).toMatch(/NONE of these results name Northgate Institute of Technology/);
+  });
+
+  it("recognises a page that really names the college", async () => {
+    const f = fake([{ title: "Northgate Institute of Technology review", url: "https://example.org/a", content: "A student's view" }]);
+    const out = await searchWeb("x", { aboutCollege: true, fetchImpl: f.fetchImpl, apiKey: "k" });
+    expect(out.collegeFound).toBe(true);
+    expect(webNote(out)).not.toMatch(/NONE of these/);
+  });
+
+  it("searches the open web by default, and official sites on request", async () => {
+    const open = fake([{ title: "Salaries", url: "https://thehindu.com/a", content: "…" }]);
+    expect((await searchWeb("AI salaries", { fetchImpl: open.fetchImpl, apiKey: "k" })).scope).toBe("the web");
+    expect(open.body()).toMatchObject({ country: "india" });
+    expect(open.body().include_domains).toBeUndefined();
+
+    const official = fake([
+      { title: "KCET", url: "https://cetonline.karnataka.gov.in/kea", content: "18 April" },
+      { title: "Coaching blog", url: "https://coaching.example.com", content: "unofficial" },
+    ]);
+    const out = await searchWeb("KCET 2027", { official: true, fetchImpl: official.fetchImpl, apiKey: "k" });
+    expect(out.results.map((r) => r.domain)).toEqual(["cetonline.karnataka.gov.in"]);
+  });
+
+  it("widens when the named site has nothing, and says so", async () => {
+    const f = fake([], [{ title: "Found elsewhere", url: "https://example.org/b", content: "…" }]);
+    const out = await searchWeb("KCET", { sites: ["x"], fetchImpl: f.fetchImpl, apiKey: "k" });
+    expect(f.calls()).toBe(2);
+    expect(out).toMatchObject({ scope: "X", widened: true });
+    expect(webNote(out)).toMatch(/Nothing came back from X itself/);
   });
 
   it("explains quota and key failures", async () => {
-    await expect(searchOfficialWeb("x", { fetchImpl: response([], 432), apiKey: "k" })).rejects.toThrow(/quota is used up/);
-    await expect(searchOfficialWeb("x", { fetchImpl: response([], 401), apiKey: "k" })).rejects.toThrow(/key was rejected/);
-    await expect(searchOfficialWeb("x", { apiKey: "" })).rejects.toThrow(/TAVILY_API_KEY/);
+    const status = (n: number) => vi.fn(async () => new Response("{}", { status: n })) as unknown as typeof fetch;
+    await expect(searchWeb("x", { fetchImpl: status(432), apiKey: "k" })).rejects.toThrow(/quota is used up/);
+    await expect(searchWeb("x", { fetchImpl: status(401), apiKey: "k" })).rejects.toThrow(/key was rejected/);
+    await expect(searchWeb("x", { apiKey: "" })).rejects.toThrow(/TAVILY_API_KEY/);
   });
 });

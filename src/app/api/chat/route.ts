@@ -14,7 +14,7 @@ import { getCollegeData } from "@/lib/data";
 import { todayIso } from "@/lib/format";
 import { CHAT_ID, saveChat, storableMessages } from "@/lib/chats";
 import { embedGapTopic, logQuery, recordGap, retractGap } from "@/lib/gaps";
-import { hasNonAscii, looksHinglish } from "@/lib/language";
+import { dependsOnHistory, hasNonAscii, looksHinglish } from "@/lib/language";
 import { friendlyLlmError, getModels, getVisionModel } from "@/lib/llm";
 import { buildInstructions, buildRewritePrompt, describeReadings } from "@/lib/prompts";
 import { type Attachment, readAttachment, readingQuery, validateAttachments } from "@/lib/reader";
@@ -23,7 +23,7 @@ import { retrieve } from "@/lib/retrieval";
 import { factsFromReadings, factsFromTools, listMemory, memoryEnabled, type NewFact, saveFacts } from "@/lib/memory";
 import { getSessionId } from "@/lib/session";
 import { createTools } from "@/lib/tools";
-import { webSearchEnabled } from "@/lib/websearch";
+import { asksAboutCollege, handbookQuery, type WebSearchOutput, wantsWebSearch, webSearchEnabled } from "@/lib/websearch";
 
 export const maxDuration = 60;
 
@@ -54,6 +54,12 @@ function withoutFiles(messages: CopilotMessage[]): CopilotMessage[] {
     if (!names.length) return m;
     return { ...m, parts: [...m.parts.filter((p) => p.type !== "file"), { type: "text" as const, text: `[Attached: ${names.join(", ")}]` }] };
   });
+}
+
+/** Give up on an optional step after a while. */
+function within<T>(ms: number, work: Promise<T>): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([work, new Promise<never>((_, reject) => (timer = setTimeout(() => reject(new Error(`no reply in ${ms} ms`)), ms)))]).finally(() => clearTimeout(timer));
 }
 
 function reportError(error: unknown): string {
@@ -113,16 +119,25 @@ export async function POST(req: Request) {
     .map((m) => ({ role: m.role as "user" | "assistant", text: textOf(m) }))
     .filter((m) => m.text && (m.role === "user" || m.role === "assistant"));
   let rewritten = question;
-  if (history.length || language !== "en" || hasNonAscii(question) || looksHinglish(question)) {
+  // Only when needed: it is an extra model call before anything else can start.
+  if ((history.length && dependsOnHistory(question)) || hasNonAscii(question) || looksHinglish(question)) {
     try {
       // Room for reasoning models (gpt-oss) to think before the one-line answer.
-      const { text } = await generateText({ model: models.fast, prompt: buildRewritePrompt(history, question), maxOutputTokens: 400, providerOptions: LIGHT_REASONING });
+      const { text } = await within(
+        6000,
+        generateText({ model: models.quick, prompt: buildRewritePrompt(history, question), maxOutputTokens: 400, maxRetries: 0, providerOptions: LIGHT_REASONING }),
+      );
       const line = text.trim().split("\n")[0].replace(/^["'`]+|["'`]+$/g, "").trim();
       if (line) rewritten = line;
     } catch (err) {
       console.warn("[chat] query rewrite failed; searching with the raw question:", err instanceof Error ? err.message : err);
     }
   }
+
+  // An explicit request to search the web is always carried out (see prepareStep),
+  // and the handbook is searched for the topic, not for the word "reddit".
+  const searchRequested = webSearchEnabled() && !readings.length && (wantsWebSearch(question) || wantsWebSearch(rewritten));
+  if (searchRequested) rewritten = handbookQuery(rewritten);
 
   // Documents bring their own topic: a receipt should pull up the fee tables.
   if (readings.length) rewritten = [rewritten, ...readings.map(readingQuery)].join(" ").replace(/\s+/g, " ").trim().slice(0, 400);
@@ -194,14 +209,23 @@ export async function POST(req: Request) {
         }),
         tools,
         stopWhen: isStepCount(5),
+        // Asked to search: the first step must search, and is sent only that tool (a
+        // third of the tokens, which matters on free per-minute limits). Afterwards a
+        // question about the outside world can't end in a handbook gap.
+        prepareStep: ({ stepNumber }) => {
+          if (!searchRequested) return {};
+          if (stepNumber === 0) return { activeTools: ["searchWeb"], toolChoice: { type: "tool", toolName: "searchWeb" } };
+          const names = Object.keys(tools) as (keyof typeof tools)[];
+          return { activeTools: asksAboutCollege(question) ? names : names.filter((n) => n !== "flagKnowledgeGap") };
+        },
         providerOptions: LIGHT_REASONING,
-        // A question answered from official sites (and not flagged by the model)
+        // A question answered from the web (and not flagged by the model)
         // was about the outside world, not a hole in the handbook.
         onFinish: ({ steps }) => {
           const results = steps.flatMap((s) => s.toolResults);
           const answeredFromWeb = results.some((r) => {
-            const out = r.toolName === "searchOfficialWeb" ? (r.output as { results?: unknown[] }) : null;
-            return !!out?.results?.length;
+            const out = r.toolName === "searchWeb" ? (r.output as Partial<WebSearchOutput>) : null;
+            return !!out?.results?.length && !(out.aboutCollege && !out.collegeFound);
           });
           if (answeredFromWeb && !results.some((r) => r.toolName === "flagKnowledgeGap")) retractGap(queryId);
         },

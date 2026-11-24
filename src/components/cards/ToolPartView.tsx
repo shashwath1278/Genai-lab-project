@@ -4,15 +4,18 @@ import { CircleNotch, Warning } from "@phosphor-icons/react";
 import type { ChecklistResult, CompareResult, CostEstimate, DatesResult, EligibilityResult } from "@/lib/calculators";
 import type { CopilotMessage } from "@/lib/chat-types";
 import type { MapResult } from "@/lib/campus-map";
-import { CampusMapCard } from "./CampusMapCard";
-import { ChecklistCard } from "./ChecklistCard";
-import { CompareCard } from "./CompareCard";
-import { CostCard } from "./CostCard";
-import { EligibilityCard } from "./EligibilityCard";
-import { GapCard } from "./GapCard";
-import { TimelineCard } from "./TimelineCard";
-import { WebResultsCard } from "./WebResultsCard";
 import type { WebSearchOutput } from "@/lib/websearch";
+import dynamic from "next/dynamic";
+
+// Each card loads with the first answer that shows it.
+const CampusMapCard = dynamic(() => import("./CampusMapCard").then((m) => m.CampusMapCard));
+const ChecklistCard = dynamic(() => import("./ChecklistCard").then((m) => m.ChecklistCard));
+const CompareCard = dynamic(() => import("./CompareCard").then((m) => m.CompareCard));
+const CostCard = dynamic(() => import("./CostCard").then((m) => m.CostCard));
+const EligibilityCard = dynamic(() => import("./EligibilityCard").then((m) => m.EligibilityCard));
+const GapCard = dynamic(() => import("./GapCard").then((m) => m.GapCard));
+const TimelineCard = dynamic(() => import("./TimelineCard").then((m) => m.TimelineCard));
+const WebResultsCard = dynamic(() => import("./WebResultsCard").then((m) => m.WebResultsCard));
 
 type Part = CopilotMessage["parts"][number];
 
@@ -24,7 +27,7 @@ const WORKING: Record<string, string> = {
   "tool-buildAdmissionChecklist": "Building checklist",
   "tool-flagKnowledgeGap": "Noting the gap",
   "tool-showCampusMap": "Finding it on the map",
-  "tool-searchOfficialWeb": "Checking official sites",
+  "tool-searchWeb": "Searching the web",
 };
 
 export const isToolPart = (part: Part) => part.type.startsWith("tool-");
@@ -50,6 +53,9 @@ export function ToolPartView({ part }: { part: Part }) {
     return <ToolError message={String((output as { error: string }).error)} />;
   }
 
+  // Chats saved before search was opened up.
+  if ((part.type as string) === "tool-searchOfficialWeb") return <WebResultsCard output={output as WebSearchOutput} />;
+
   switch (part.type) {
     case "tool-checkEligibility":
       return <EligibilityCard result={output as EligibilityResult} />;
@@ -63,10 +69,10 @@ export function ToolPartView({ part }: { part: Part }) {
       return <ChecklistCard result={output as ChecklistResult} />;
     case "tool-showCampusMap":
       return <CampusMapCard result={output as MapResult} />;
-    case "tool-searchOfficialWeb":
+    case "tool-searchWeb":
       return <WebResultsCard output={output as WebSearchOutput} />;
     case "tool-flagKnowledgeGap":
-      return <GapCard output={output as Parameters<typeof GapCard>[0]["output"]} />;
+      return <GapCard output={output as Parameters<typeof import("./GapCard").GapCard>[0]["output"]} />;
     default:
       return null;
   }

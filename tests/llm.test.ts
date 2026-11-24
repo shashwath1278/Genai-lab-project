@@ -81,6 +81,21 @@ describe("withFallback", () => {
     expect(hint("slow down")).toBeNull();
   });
 
+  it("marks a spent quota as final, so nothing waits and retries behind the user's back", async () => {
+    const spent = fake("groq-spent", () => Promise.reject(quota()));
+    const error = await withFallback([{ id: "groq", model: spent }]).doStream({} as never).then(() => null, (e: unknown) => e);
+    expect(APICallError.isInstance(error) && error.isRetryable).toBe(false);
+    expect(isRateLimited(error)).toBe(true);
+  });
+
+  it("does not wait when asked not to", async () => {
+    const limit = new APICallError({ message: "Rate limit reached (TPM). Please try again in 5s.", url: "x", requestBodyValues: {}, statusCode: 429 });
+    const busy = fake("groq-busy", () => Promise.reject(limit));
+    const t = Date.now();
+    await expect(withFallback([{ id: "groq", model: busy }], { patient: false }).doStream({} as never)).rejects.toThrow(/Rate limit/);
+    expect(Date.now() - t).toBeLessThan(1000);
+  });
+
   it("does not hide other errors", async () => {
     const broken = fake("gemini", () => Promise.reject(new Error("bad request")));
     const groq = fake("groq", () => Promise.resolve("never"));

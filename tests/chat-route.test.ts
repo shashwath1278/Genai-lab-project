@@ -28,13 +28,15 @@ const script: Chunk[][] = [];
 const rewrites: string[] = [];
 const prompts: string[] = [];
 const visionReplies: string[] = [];
+const toolChoices: unknown[] = [];
 
 vi.mock("../src/lib/session", () => ({ getSessionId: async () => "test-session" }));
 vi.mock("../src/lib/llm", () => ({
   friendlyLlmError: (e: unknown) => String(e),
   getModels: () => ({
     info: { provider: "gemini", model: "mock", fastModel: "mock" },
-    fast: new MockLanguageModelV4({
+    fast: new MockLanguageModelV4({}),
+    quick: new MockLanguageModelV4({
       doGenerate: async () => ({
         content: [{ type: "text", text: rewrites.shift() ?? "fallback query" }],
         finishReason: { unified: "stop", raw: undefined },
@@ -45,6 +47,7 @@ vi.mock("../src/lib/llm", () => ({
     main: new MockLanguageModelV4({
       doStream: async (options) => {
         prompts.push(JSON.stringify(options.prompt));
+        toolChoices.push(options.toolChoice);
         return { stream: simulateReadableStream({ chunks: (script.shift() ?? text("(no script)")) as never[] }) };
       },
     }),
@@ -199,32 +202,40 @@ describe("POST /api/chat", () => {
     expect((await res.json()).error).toMatch(/isn't a photo/);
   });
 
-  it("searches official sites only when a key is set, and doesn't file web-answered questions as gaps", async () => {
+  it("always searches when asked to, and never passes another college off as Northgate", async () => {
     process.env.TAVILY_API_KEY = "test-key";
     const realFetch = globalThis.fetch;
     vi.stubGlobal("fetch", async (url: string | URL | Request, init?: RequestInit) =>
       String(url).includes("api.tavily.com")
-        ? new Response(JSON.stringify({ results: [
-            { title: "KCET 2027 brochure", url: "https://cetonline.karnataka.gov.in/kea/kcet2027", content: "The exam is on 18 and 19 April 2027.", published_date: "2026-11-01" },
-            { title: "KCET tips", url: "https://blog.example.com/kcet", content: "unofficial" },
-          ] }))
+        ? new Response(JSON.stringify({ results: [{ title: "NGIT placements thread", url: "https://www.reddit.com/r/Btechtards/1", content: "NGIT Hyderabad had 60% placed" }] }))
         : realFetch(url, init),
     );
     try {
-      script.push(toolCall("searchOfficialWeb", { query: "KCET 2027 exam date" }), text("KCET 2027 is on 18-19 April [W1]."));
-      const chunks = await chat([{ role: "user", text: "When is the KCET 2027 exam?" }]);
-      const out = chunks.find((c) => c.type === "tool-output-available")?.output as { results: { id: string; domain: string }[] };
-      expect(out.results).toEqual([expect.objectContaining({ id: "W1", domain: "cetonline.karnataka.gov.in" })]);
-      const toModel = prompts.at(-1)!;
-      expect(toModel).toContain("searchOfficialWeb looks things up on official government");
-      expect(toModel).toContain("not Northgate's handbook");
-      const evidence = chunks.find((c) => c.type === "data-evidence")!.data as { queryId: number };
-      const q = db.prepare("SELECT gap_cluster_id FROM queries WHERE id = ?").get(evidence.queryId) as { gap_cluster_id: number | null };
-      expect(q.gap_cluster_id).toBeNull();
+      script.push(toolCall("searchWeb", { query: "Northgate Institute of Technology placements" }), text("I searched Reddit and found nothing about Northgate. The handbook says 87% were placed [1]."));
+      const chunks = await chat([{ role: "user", text: "scan reddit for last year placements of this college" }]);
+      expect(toolChoices.at(-2)).toEqual({ type: "tool", toolName: "searchWeb" }); // step 1: must search
+      expect(toolChoices.at(-1)).toEqual({ type: "auto" }); // step 2: free to answer
+      const out = chunks.find((c) => c.type === "tool-output-available")?.output as { scope: string; collegeFound: boolean; results: { id: string; site: string }[] };
+      expect(out).toMatchObject({ scope: "Reddit", collegeFound: false, results: [expect.objectContaining({ id: "W1", site: "Reddit" })] });
+      // The handbook was searched for the topic, so its placements page is there to answer from.
+      const evidence = chunks.find((c) => c.type === "data-evidence")!.data as { rewritten: string; passages: { docSlug: string }[] };
+      expect(evidence.rewritten).toBe("last year placements of this college");
+      expect(evidence.passages.map((p) => p.docSlug)).toContain("placements");
+      expect(prompts.at(-1)).toContain("NONE of these results name Northgate Institute of Technology");
     } finally {
       vi.unstubAllGlobals();
       delete process.env.TAVILY_API_KEY;
     }
+  });
+
+  it("doesn't force a search on ordinary questions, or without a key", async () => {
+    script.push(text("Yes [1]."));
+    await chat([{ role: "user", text: "Can I pay the fees online?" }]);
+    expect(toolChoices.at(-1)).toEqual({ type: "auto" });
+    script.push(text("Search isn't set up."));
+    await chat([{ role: "user", text: "scan reddit for hostel reviews" }]);
+    expect(toolChoices.at(-1)).toEqual({ type: "auto" });
+    expect(prompts.at(-1)).not.toContain("searchWeb searches the live web");
   });
 
   it("remembers the user's details from tool inputs and uses them in the next chat", async () => {

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { EvidenceData } from "@/lib/chat-types";
 import type { Passage } from "@/lib/retrieval";
 import type { WebResult } from "@/lib/websearch";
-import { SiteLogo } from "../SiteLogo";
+import { SiteLogo, TierTag } from "../SiteLogo";
 import { SourcesSpot } from "../art/spots";
 import { ConfidenceBadge, cx, Meter, Pill } from "../ui";
 
@@ -83,7 +83,7 @@ function PassageCard({ p, terms, focused, focusTick }: { p: Passage; terms: stri
 function WebSources({ web, handbookFollows }: { web: WebResult[]; handbookFollows: boolean }) {
   return (
     <section aria-label="From the web">
-      <p className="eyebrow mb-2">From the web · official sites</p>
+      <p className="eyebrow mb-2">From the web</p>
       <ol className="space-y-2">
         {web.map((w) => (
           <li key={w.id} id={`web-source-${w.id}`} className="rounded-xl border border-dashed border-line-strong bg-surface p-3">
@@ -91,6 +91,7 @@ function WebSources({ web, handbookFollows }: { web: WebResult[]; handbookFollow
               <SiteLogo domain={w.domain} favicon={w.favicon} size={18} />
               <span className="text-[12px] font-medium text-ink-2">{w.site}</span>
               <span className="font-mono text-[10.5px] text-muted">{w.id}</span>
+              <TierTag domain={w.domain} />
             </div>
             <a href={w.url} target="_blank" rel="noreferrer noopener" className="mt-1.5 block text-[12.5px] font-medium leading-snug text-ink underline decoration-line-strong underline-offset-2 hover:text-accent-text">
               {w.title}

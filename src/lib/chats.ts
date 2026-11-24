@@ -40,13 +40,18 @@ export function saveChat(sessionId: string, id: string, messages: UIMessage[], d
 
 export function listChats(sessionId: string, db: DB = getDb()): ChatSummary[] {
   const rows = db
-    .prepare("SELECT id, title, updated_at, messages FROM chats WHERE session_id = ? ORDER BY updated_at DESC LIMIT 40")
-    .all(sessionId) as { id: string; title: string; updated_at: string; messages: string }[];
+    .prepare(
+      // Counted inside SQLite: the conversations themselves (which can be long) aren't loaded for a list.
+      `SELECT id, title, updated_at,
+         (SELECT COUNT(*) FROM json_each(chats.messages) WHERE json_extract(json_each.value, '$.role') = 'user') AS turns
+       FROM chats WHERE session_id = ? ORDER BY updated_at DESC LIMIT 40`,
+    )
+    .all(sessionId) as { id: string; title: string; updated_at: string; turns: number }[];
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
     updatedAt: r.updated_at,
-    turns: (JSON.parse(r.messages) as UIMessage[]).filter((m) => m.role === "user").length,
+    turns: r.turns,
   }));
 }
 

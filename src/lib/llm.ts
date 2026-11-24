@@ -80,7 +80,14 @@ export function retryAfterMs(error: unknown): number | null {
 
 const SHORT_WAIT_MS = 25_000;
 
-export function withFallback(models: { id: ProviderId; model: LanguageModelV4 }[]): LanguageModelV4 {
+function finalError(error: unknown): unknown {
+  const e = rootError(error);
+  if (!APICallError.isInstance(e)) return error;
+  return new APICallError({ message: e.message, url: e.url, requestBodyValues: {}, statusCode: e.statusCode, cause: e, isRetryable: false });
+}
+
+/** `patient`: wait out a short per-minute limit once. Helpers that can be skipped pass false. */
+export function withFallback(models: { id: ProviderId; model: LanguageModelV4 }[], { patient = true } = {}): LanguageModelV4 {
   async function attempt<T>(call: (m: LanguageModelV4) => PromiseLike<T>): Promise<T> {
     const ready = models.filter((m) => (cooldown.get(keyOf(m)) ?? 0) <= Date.now());
     let lastError: unknown;
@@ -101,12 +108,14 @@ export function withFallback(models: { id: ProviderId; model: LanguageModelV4 }[
     // Every model is busy. A per-minute limit that clears in a few seconds (a
     // two-step answer can overshoot Groq's 8,000 tokens a minute by a little)
     // is worth waiting for, once, rather than failing the answer.
-    if (soonest) {
+    if (soonest && patient) {
       await new Promise((r) => setTimeout(r, soonest.wait + 300));
       cooldown.delete(keyOf(soonest.m));
       return await call(soonest.m.model);
     }
-    throw lastError;
+    // Every model has been tried (and waited for) by now. Marked final, because the
+    // SDK would otherwise retry a 429 itself, silently waiting out Retry-After each time.
+    throw finalError(lastError);
   }
 
   const first = models[0].model;
@@ -120,7 +129,7 @@ export function withFallback(models: { id: ProviderId; model: LanguageModelV4 }[
   };
 }
 
-export function getModels(): { main: LanguageModelV4; fast: LanguageModelV4; info: ProviderInfo } | null {
+export function getModels(): { main: LanguageModelV4; fast: LanguageModelV4; quick: LanguageModelV4; info: ProviderInfo } | null {
   const list = providers();
   const info = getProviderInfo();
   if (!list.length || !info) return null;
@@ -132,6 +141,8 @@ export function getModels(): { main: LanguageModelV4; fast: LanguageModelV4; inf
       ...list.slice(-1).filter((p) => p.fastModel !== p.model).map((p) => ({ id: p.id, model: p.make(p.fastModel) })),
     ]),
     fast: withFallback(list.map((p) => ({ id: p.id, model: p.make(p.fastModel) }))),
+    // Same models, never waiting: for the query rewrite, which has a fallback.
+    quick: withFallback(list.map((p) => ({ id: p.id, model: p.make(p.fastModel) })), { patient: false }),
     info,
   };
 }

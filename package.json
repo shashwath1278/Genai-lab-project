@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "predev": "tsx scripts/ensure-db.ts",
-    "dev": "next dev --webpack",
+    "dev": "next dev --turbopack",
+    "dev:webpack": "next dev --webpack",
+    "fast": "next build --webpack && next start",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
     "eval": "tsx scripts/eval-retrieval.ts",
     "test": "vitest run",
-    "dev:turbo": "next dev",
     "eval:answers": "tsx scripts/eval-answers.ts",
     "test:e2e": "playwright test"
   },

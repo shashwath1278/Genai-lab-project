@@ -17,5 +17,15 @@ export function looksHinglish(text: string): boolean {
   return false;
 }
 
+// Words that lean on what was said before. "Is there…" and "this college" don't.
+const REFERS =
+  /\b(?:it|its|that|this|those|these|they|them|their|there|he|she|same|ones?|other|another|above|previous|earlier|instead|else|also|too|again|former|latter)\b|^\s*(?:and|or|but|so|then|what about|how about|why|ok(?:ay)?|yes|no|sure|more|which)\b/i;
+
+/** A follow-up that can't be searched on its own ("and its hostel?"). Self-contained ones skip the rewrite call. */
+export function dependsOnHistory(question: string): boolean {
+  const q = question.replace(/\b(?:is|are|was|were|will) there\b/gi, " ").replace(/\b(?:this|the same) (?:college|campus|institute|university|year|semester|month|week)\b/gi, " ");
+  return question.trim().split(/\s+/).length < 5 || REFERS.test(q);
+}
+
 /** Non-Latin script (Devanagari, Kannada, ...) anywhere in the text. */
 export const hasNonAscii = (text: string) => /[^\x00-\x7F]/.test(text);
